@@ -4,24 +4,36 @@ description: How to return and parse errors.
 icon: pixelarticons:warning-diamond
 ---
 
-The basic error model looks like this:
+Errors use the same response shape across the API:
 
 ```ts
 interface ErrorResponse {
   error: {
     status: number;
     message: string;
-    code?: ErrorCode;
+    details?: ErrorDetail[];
     requestId?: string;
   };
+}
+
+interface ErrorDetail {
+  message: string;
+  param?: string;
+  value?: unknown;
 }
 ```
 
 It consists of:
 
-- `status`: Error status code (`100 - 599`)
-- `message`: Short descriptive error message
-- [`code?`](#error-codes): Only needed for OpenMusic specific errors
-- `request_id?`: Include for logging/debug purposes if needed
+- `status`: HTTP status code (`100 - 599`)
+- `message`: Short description of what went wrong
+- [`details?`](#error-details): More information about specific invalid parts of the request
+- `requestId?`: ID used for logs and debugging. If the error is visible to the user, the client should make this value easy to copy.
 
-## Error Codes
+## Error Details
+
+Use error details when one response needs to point out multiple request issues. Use one detail per invalid item. For example, each unknown field should get its own detail.
+
+- `message`: Short description of the issue
+- `param`: The affected query parameter. For example: `fields[song]`
+- `value`: The invalid value. For example: `artUrl`
