@@ -4,187 +4,57 @@ description: How to implement the OpenMusic API spec in practice
 icon: pixelarticons:code
 ---
 
-import { GithubInfo } from "fumadocs-ui/components/github-info";
 import { Icon } from "@iconify/react";
-
-OpenMusic is a read-only music API spec for exposing songs and related metadata
-through a consistent resource model.
-
-We maintain **openmusic-fs** as the reference implementation and a production-ready
-local filesystem adapter in Go.
-
-<GithubInfo owner="vleerapp" repo="openmusic-fs" />
-
-It is the implementation used to validate and evolve the spec.
-
-## Downloads
-
-<Cards cols={2}>
-  <Card
-    title="Download OpenMusic YAML"
-    href="/openmusic.yml"
-    download="openmusic.yml"
-    icon={<Icon icon="pixelarticons:download" />}
-    description="OpenMusic OpenAPI Specifications"
-  />
-</Cards>
 
 ## Core Model
 
-An OpenMusic server exposes resource objects such as:
+An OpenMusic server consists of:
 
-- songs
-- albums
-- artists
-- playlists
-- stations
+- Songs
+- Albums
+- Artists
+- Playlists
+- Stations
 
 Most responses follow the same structure:
 
 - `data` wrapper
 - `id` and `type`
-- `attributes` for the full representation
+- `attributes` for details
 - `relationships` for linked resources
 
 This lets clients work with different resource types in a predictable way.
 
-`relationships` is optional.
-If it is omitted, no relationships were included in that resource payload.
-If a relationship key is present with an empty array, it means the relationship
-was included and no related resources were found.
+Relationships are optional, if it is omitted, no relationships were included in that resource payload.
+If a relationship key is present with an empty array, it means the relationship was included and no related resources were found.
 
 ## Capabilities
 
-Clients should not assume every endpoint family is available.
+Clients should not assume every endpoint is available.
 Instead, they should call the info endpoint first and inspect the returned
 capability flags.
 
-| Feature                  | Type     | Description                             |
-| ------------------------ | -------- | --------------------------------------- |
-| [`info`](#info)          | Required | Return branding and capability metadata |
-| [`search`](#search)      | Required | Search songs and optionally other types |
-| [`song`](#song)          | Required | Fetch a song by id                      |
-| `download`               | Required | Provide downloadable song files         |
-| `stream`                 | Optional | Provide stream URLs for song files      |
-| [`artists`](#artist)     | Optional | Search and fetch artists                |
-| [`albums`](#album)       | Optional | Search and fetch albums                 |
-| [`playlists`](#playlist) | Optional | Search and fetch playlists              |
-| [`stations`](#station)   | Optional | Expose generated stations               |
-| `sort`                   | Optional | Support `sort` on listing endpoints     |
-| `lyrics`                 | Optional | Expose lyrics data                      |
-
-When relationship capabilities are unavailable (for example `artists` or
-`albums`), fallback display fields can be used in attributes:
-`artist_name` and `album_name` on songs, and `artist_name` on albums.
-Implementations that do expose these relationships should still populate these
-fields whenever the values are available.
-
-## Endpoint Families
-
-Current endpoint families in the spec:
-
-```yml
-/api:
-  /: # info
-  /songs: # sortable
-    /{id}:
-      /rel:
-        /albums:
-        /artists:
-        /lyrics:
-  /albums: # sortable
-    /{id}:
-      /rel:
-        /tracks:
-        /artists:
-  /artists: # sortable
-    /{id}:
-      /rel:
-        /albums: # sortable
-        /songs: # sortable
-  /playlists: # sortable
-    /{id}:
-      /rel:
-        /tracks:
-  /stations:
-    /artist:
-      /{id}:
-        /rel:
-          /tracks:
-    /genre:
-      /{genre}:
-        /rel:
-          /tracks:
-    /popular:
-      /rel:
-        /tracks:
-  /search:
-    /:
-    /songs:
-    /albums:
-    /artists:
-    /playlists:
-```
-
-## Query Model
-
-Many endpoints share the same query concepts.
-
-| Name             | Description                      | Type                                          | Example                            |
-| ---------------- | -------------------------------- | --------------------------------------------- | ---------------------------------- |
-| `lang`           | Preferred language               | `string`                                      | `lang=en-US`                       |
-| `omm_ids`        | Lookup by OpenMusicMetadata IDs  | `string`                                      | `omm_ids=tz4a98xxat96iws9zmbrgj3a` |
-| `view`           | Return the minimal resource form | `"minimal"`                                   | `view=minimal`                     |
-| `include`        | Include direct relationships     | `string`                                      | `include=artists,albums`           |
-| `limit`          | Response list size               | `number`                                      | `limit=10`                         |
-| `offset`         | Number of items to skip          | `number`                                      | `offset=10`                        |
-| `sort`           | Sort ascending or descending     | `"-?date_released"\|"-?date_added"\|"-?name"` | `sort=-date_released`              |
-| `filter[genres]` | Filter by genre                  | `string`                                      | `filter[genres]=pop,rock`          |
-
-`omm_ids` is only supported on lookup endpoints (`/songs`, `/albums`, `/artists`).
-`sort` is supported on base resource listing requests and on these relationship endpoints:
-
-- `/artists/{id}/rel/albums`
-- `/artists/{id}/rel/songs`
-- `/stations/artist/{id}/rel/tracks`
-- `/stations/genre/{genre}/rel/tracks`
-- `/stations/popular/rel/tracks`
+| Feature                | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `streaming`            | Stream songs with range headers instead of just downloading |
+| [`stations`](#station) | Use and create stations                                     |
+| [`explore`](#explore)  | Home page with different sections and resources to explore  |
 
 ## Language
 
-`lang` should use a locale string such as `en-US`, `de-CH`, or `ja-JP`.
+`lang` should use a locale string in the `BCP 47 language tag` format such as `en-US`, `de-CH`, or `ja-JP`.
 
 OpenMusic implementations do not have to provide localized data at all.
+
 If an implementation does support localization, `en-US` is the recommended
 default locale.
 
 If `lang` is omitted or the requested locale is unavailable, the implementation
 should fall back to `en-US` when possible.
 
-Scoped parameters apply to included relationships.
+Fields like names, lyrics, descriptions, section titles, infos and so on should be localized in the requested language if possible.
 
-Examples:
-
-- `view[albums]=minimal`
-- `view[artists]=minimal`
-- `limit[albums]=5`
-- `limit[artists]=10`
-
-This allows a client to fetch a rich main resource while keeping nested related
-resources compact.
-
-## OMM IDs
-
-`omm_ids` are canonical IDs from OpenMusicMetadata.
-
-These identifiers are generally CUID2 strings (for example
-`tz4a98xxat96iws9zmbrgj3a`) and are used to map the same song, album, or artist
-across different OpenMusic implementations.
-
-Use `omm_ids` when you need cross-source identity instead of source-specific
-lookup keys like `ids`, `isrc`, or `upc`.
-
-## Info
+## Info Endpoint
 
 The info endpoint should be the first request a client makes.
 
@@ -208,6 +78,10 @@ More detail:
 - [`Search Overview`](/openmusic/search/search-overview)
 
 ## Resources
+
+Resource ids are preferably cuid2 or a canonical OpenMusicMetadata id.
+
+OpenMusicMetadata ids are in the format `omm:type:cuid2` (for example: `omm:songs:oftay2u1l6i8fgpytmu6laxn`) and are used to map the same song, album, or artist across different OpenMusic implementations or the OpenMusicMetadata database.
 
 ### Song
 

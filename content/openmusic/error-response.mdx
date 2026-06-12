@@ -1,0 +1,27 @@
+---
+title: Error Response
+description: How to return and parse errors.
+icon: pixelarticons:warning-diamond
+---
+
+The basic error model looks like this:
+
+```ts
+interface ErrorResponse {
+  error: {
+    status: number;
+    message: string;
+    code?: ErrorCode;
+    requestId?: string;
+  };
+}
+```
+
+It consists of:
+
+- `status`: Error status code (`100 - 599`)
+- `message`: Short descriptive error message
+- [`code?`](#error-codes): Only needed for OpenMusic specific errors
+- `request_id?`: Include for logging/debug purposes if needed
+
+## Error Codes
