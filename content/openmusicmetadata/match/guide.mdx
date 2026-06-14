@@ -1,21 +1,35 @@
 ---
 title: Match
-description: Match song metadata to one OpenMusicMetadata song.
+description: Match metadata to one OpenMusicMetadata resource.
 icon: pixelarticons:book-open
 ---
 
-Use match when you have song metadata and need the canonical OpenMusicMetadata song.
+Use match when you have metadata and need one canonical OpenMusicMetadata resource.
 
 ```http
 GET /match/song?name=blue&artist=example
+GET /match/album?name=blue&artist=example
+GET /match/artist?name=example
 ```
 
-Album name can be used as extra context.
+Song matching can use album name as extra context.
 
 ```http
 GET /match/song?name=blue&album=example&artist=artist
 ```
 
-The response is `Single<Song>`.
+Album matching can use artist name as extra context.
+
+```http
+GET /match/album?name=example&artist=artist
+```
+
+Artist matching only uses artist name.
+
+```http
+GET /match/artist?name=artist
+```
+
+The response is `Single<Song | Album | Artist>`. The returned type matches the requested `type`.
 
 Match supports `fields[...]` and `include`.

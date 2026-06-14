@@ -28,8 +28,10 @@ GET /lookup?isrc=USRC17607839
 GET /lookup?upc=602455878540
 ```
 
-Use `/match/song` when you need to match song metadata to one canonical OpenMusicMetadata song.
+Use `/match/{type}` when you need to match metadata to one canonical OpenMusicMetadata resource.
 
 ```http
 GET /match/song?name=blue&artist=example
+GET /match/album?name=blue&artist=example
+GET /match/artist?name=example
 ```

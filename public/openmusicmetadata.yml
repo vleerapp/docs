@@ -76,29 +76,35 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  /match/song:
+  /match/{type}:
     get:
       tags: [Match]
-      summary: Match a song
-      operationId: matchSong
-      description: Matches song metadata to one canonical OpenMusicMetadata song.
+      summary: Match one metadata resource
+      operationId: matchResource
+      description: Matches provided metadata to one canonical OpenMusicMetadata resource. Songs can use name, artist, and album. Albums can use name and artist. Artists use name.
       parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [song, album, artist]
         - name: name
           in: query
-          required: false
-          description: Song name.
+          required: true
+          description: Resource name.
           schema:
             type: string
         - name: album
           in: query
           required: false
-          description: Album name.
+          description: Album name. Used for song matching.
           schema:
             type: string
         - name: artist
           in: query
           required: false
-          description: Artist name.
+          description: Artist name. Used for song and album matching.
           schema:
             type: string
         - $ref: "#/components/parameters/Include"
@@ -107,11 +113,11 @@ paths:
         - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
-          description: Matched song
+          description: Matched resource
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SongSingle"
+                $ref: "#/components/schemas/ResourceSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -360,13 +366,6 @@ components:
             - $ref: "#/components/schemas/Song"
             - $ref: "#/components/schemas/Album"
             - $ref: "#/components/schemas/Artist"
-
-    SongSingle:
-      type: object
-      required: [data]
-      properties:
-        data:
-          $ref: "#/components/schemas/Song"
 
     SongList:
       type: object
