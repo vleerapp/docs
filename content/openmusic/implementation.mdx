@@ -57,13 +57,15 @@ Fields are always scoped by resource type:
 GET /song/song_123?fields[song]=name,artworkUrl
 ```
 
-Included relationships can be limited and sorted with `resource:relationship` syntax:
+Included relationships can be limited and sorted with singular `resource:relationship` syntax:
 
 ```http
-GET /song/song_123?include=albums,albums.tracks&limit[albums:tracks]=10&sort[albums:tracks]=name
+GET /song/song_123?include=albums,albums.tracks&limit[album:tracks]=10&sort[album:tracks]=name
 ```
 
-Root list and relationship endpoints support `limit`, `offset`, and `sort`. Sorting supports `name`, `dateAdded`, and minus-prefixed descending variants. Song and album result sets also support `releaseDate`.
+Root list, relationship, search, and explore endpoints support `limit`. The usual maximum is 100. Search uses one `limit` for all requested groups, except `top`, which always returns at most 10 resources. Search suggestions always return at most 10 suggestions.
+
+Root list and relationship endpoints support `offset` and `sort`. Sorting supports `name`, `dateAdded`, and minus-prefixed descending variants. Song and album result sets also support `releaseDate`.
 
 ## Files
 

@@ -16,6 +16,8 @@ GET /search?term=blue&types=song,album,artist,playlist,top
 
 The response is a `Search` object with result groups such as `songs`, `albums`, `artists`, `playlists`, and `top`.
 
+`limit` applies to each requested group. The usual maximum is 100. The `top` group always returns at most 10 resources.
+
 ## Search One Type
 
 Use typed search when the UI needs only one resource type.
@@ -35,4 +37,4 @@ Typed search returns the matching list type, for example `List<Song>` for `/sear
 GET /search/suggestions?term=blu
 ```
 
-Suggestions return a raw string array.
+Suggestions return a raw string array with at most 10 entries.

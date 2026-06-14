@@ -52,10 +52,10 @@ Fields are scoped by resource type:
 GET /song/song_123?fields[song]=name,artworkUrl
 ```
 
-Included relationship lists can be limited and sorted:
+Included relationship lists can be limited and sorted with singular `resource:relationship` syntax:
 
 ```http
-GET /song/song_123?include=albums,albums.tracks&limit[albums:tracks]=10&sort[albums:tracks]=name
+GET /song/song_123?include=albums,albums.tracks&limit[album:tracks]=10&sort[album:tracks]=name
 ```
 
 ## Relationship Endpoints

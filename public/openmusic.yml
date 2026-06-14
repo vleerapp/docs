@@ -554,7 +554,7 @@ paths:
       tags: [Stations]
       summary: Get a resource station
       operationId: getResourceStation
-      description: Creates or returns a station seeded by the resource type and the resource id of that type.
+      description: Gets a generated station seeded by the resource type and the resource id of that type. Station ids may expire and should not be stored permanently by clients.
       parameters:
         - name: type
           in: path
@@ -577,6 +577,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StationSingle"
+              examples:
+                resourceStation:
+                  value:
+                    data:
+                      id: station_artist_123
+                      type: station
+                      attributes:
+                        name: Artist Station
+                        seed:
+                          kind: resource
+                          type: artist
+                          id: artist_123
         default:
           $ref: "#/components/responses/Error"
 
@@ -604,6 +616,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StationSingle"
+              examples:
+                genreStation:
+                  value:
+                    data:
+                      id: station_genre_jazz
+                      type: station
+                      attributes:
+                        name: Jazz Station
+                        seed:
+                          kind: genre
+                          name: jazz
         default:
           $ref: "#/components/responses/Error"
 
@@ -626,6 +649,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StationSingle"
+              examples:
+                popularStation:
+                  value:
+                    data:
+                      id: station_popular
+                      type: station
+                      attributes:
+                        name: Popular
+                        seed:
+                          kind: popular
         default:
           $ref: "#/components/responses/Error"
 
@@ -649,6 +682,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StationSingle"
+              examples:
+                customStation:
+                  value:
+                    data:
+                      id: station_custom_123
+                      type: station
+                      attributes:
+                        name: Custom Station
+                        seed:
+                          kind: custom
         default:
           $ref: "#/components/responses/Error"
 
@@ -693,7 +736,7 @@ paths:
         - $ref: "#/components/parameters/FieldsAlbum"
         - $ref: "#/components/parameters/FieldsArtist"
         - $ref: "#/components/parameters/FieldsPlaylist"
-        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/SearchLimit"
         - $ref: "#/components/parameters/Offset"
       responses:
         "200":
@@ -723,7 +766,7 @@ paths:
         - $ref: "#/components/parameters/FieldsAlbum"
         - $ref: "#/components/parameters/FieldsArtist"
         - $ref: "#/components/parameters/FieldsPlaylist"
-        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/SearchLimit"
         - $ref: "#/components/parameters/Offset"
       responses:
         "200":
@@ -740,6 +783,7 @@ paths:
       tags: [Search]
       summary: Get search suggestions
       operationId: getSearchSuggestions
+      description: Returns at most 10 suggestions.
       parameters:
         - $ref: "#/components/parameters/SearchTerm"
       responses:
@@ -835,11 +879,11 @@ components:
           value: albums,albums.tracks,albums.tracks.artists
 
     LimitIncluded:
-      name: limit[{relationship}]
+      name: limit[{resource}:{relationship}]
       in: query
       required: false
       allowReserved: true
-      description: Limit an included relationship. Replace {relationship} with the included path in resource:relationship form, for example limit[albums:tracks].
+      description: Limit an included relationship. Replace {resource}:{relationship} with the singular resource type and relationship name, for example limit[album:tracks].
       schema:
         type: integer
         minimum: 1
@@ -849,11 +893,11 @@ components:
           value: 10
 
     SortIncluded:
-      name: sort[{relationship}]
+      name: sort[{resource}:{relationship}]
       in: query
       required: false
       allowReserved: true
-      description: Sort an included relationship. Replace {relationship} with the included path in resource:relationship form, for example sort[albums:tracks]. Supports name, dateAdded, and minus-prefixed descending variants. Song and album relationships also support releaseDate and -releaseDate.
+      description: Sort an included relationship. Replace {resource}:{relationship} with the singular resource type and relationship name, for example sort[album:tracks]. Supports name, dateAdded, and minus-prefixed descending variants. Song and album relationships also support releaseDate and -releaseDate.
       schema:
         type: string
         enum: [name, -name, dateAdded, -dateAdded, releaseDate, -releaseDate]
@@ -910,7 +954,18 @@ components:
       name: limit
       in: query
       required: false
-      description: Maximum number of resources to return.
+      description: Maximum number of resources to return. The usual maximum is 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+
+    SearchLimit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of resources per returned search group. The usual maximum is 100. The top group always returns at most 10 resources.
       schema:
         type: integer
         minimum: 1

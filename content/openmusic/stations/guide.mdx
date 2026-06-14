@@ -6,11 +6,13 @@ icon: pixelarticons:book-open
 
 Stations are generated track collections. A station is defined by its `seed`, such as a resource, a genre, popular music, or a custom server-defined source.
 
+Servers may internally track which songs were already returned for a station to avoid duplicates. That state can expire. Clients should not store station ids permanently.
+
 Stations are optional. Check the `stations` capability from `GET /` before using these endpoints.
 
 ## Resource Stations
 
-Use `/stations/{type}/{id}` to create or fetch a station seeded by a resource type and an id of that type.
+Use `/stations/{type}/{id}` to get a generated station seeded by a resource type and an id of that type.
 
 ```http
 GET /stations/artist/artist_123
