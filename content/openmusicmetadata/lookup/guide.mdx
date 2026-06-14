@@ -24,7 +24,7 @@ GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
 
 The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data`.
 
-Lookup requests with `ids` support at most 100 ids.
+Lookup requests support at most 100 values for `ids`, `isrc`, or `upc`.
 
 ## By ISRC
 

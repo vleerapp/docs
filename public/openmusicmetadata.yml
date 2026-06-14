@@ -137,7 +137,7 @@ components:
       name: ids
       in: query
       required: false
-      description: Comma-separated OpenMusicMetadata ids. Maximum 100 ids. Cannot be combined with isrc or upc.
+      description: Comma-separated OpenMusicMetadata ids. Maximum 100 lookup values. Cannot be combined with isrc or upc.
       schema:
         type: string
       example: omm:song:1,omm:album:2,omm:artist:3
@@ -146,7 +146,7 @@ components:
       name: isrc
       in: query
       required: false
-      description: Song ISRC. Cannot be combined with ids or upc.
+      description: Song ISRC values. Maximum 100 lookup values. Cannot be combined with ids or upc.
       schema:
         type: string
       example: USRC17607839
@@ -155,7 +155,7 @@ components:
       name: upc
       in: query
       required: false
-      description: Album UPC. Cannot be combined with ids or isrc.
+      description: Album UPC values. Maximum 100 lookup values. Cannot be combined with ids or isrc.
       schema:
         type: string
       example: "602455878540"
