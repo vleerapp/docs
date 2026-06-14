@@ -1,10 +1,12 @@
 ---
 title: Lookup
-description: Fetch resources by OpenMusicMetadata id.
+description: Fetch resources by id, ISRC, or UPC.
 icon: pixelarticons:book-open
 ---
 
-Use lookup when you already have one or more OpenMusicMetadata ids.
+Use lookup when you already have OpenMusicMetadata ids, a song ISRC, or an album UPC.
+
+`ids`, `isrc`, and `upc` are separate lookup modes and cannot be combined in the same request.
 
 ## One Resource
 
@@ -23,6 +25,22 @@ GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
 The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data`.
 
 Lookup requests with `ids` support at most 100 ids.
+
+## By ISRC
+
+```http
+GET /lookup?isrc=USRC17607839
+```
+
+The response is a `Collection<Song>`.
+
+## By UPC
+
+```http
+GET /lookup?upc=602455878540
+```
+
+The response is a `Collection<Album>`.
 
 ## Includes
 

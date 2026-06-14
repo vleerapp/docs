@@ -36,9 +36,11 @@ paths:
       tags: [Lookup]
       summary: Look up metadata resources
       operationId: lookupResources
-      description: Returns matching resources in request order. Missing ids are omitted from data.
+      description: Returns matching resources. Use exactly one of ids, isrc, or upc. ids returns resources in request order and omits missing ids from data.
       parameters:
         - $ref: "#/components/parameters/LookupIds"
+        - $ref: "#/components/parameters/LookupIsrc"
+        - $ref: "#/components/parameters/LookupUpc"
         - $ref: "#/components/parameters/Include"
         - $ref: "#/components/parameters/FieldsSong"
         - $ref: "#/components/parameters/FieldsAlbum"
@@ -139,11 +141,29 @@ components:
     LookupIds:
       name: ids
       in: query
-      required: true
-      description: Comma-separated OpenMusicMetadata ids. Maximum 100 ids.
+      required: false
+      description: Comma-separated OpenMusicMetadata ids. Maximum 100 ids. Cannot be combined with isrc or upc.
       schema:
         type: string
       example: omm:song:1,omm:album:2,omm:artist:3
+
+    LookupIsrc:
+      name: isrc
+      in: query
+      required: false
+      description: Song ISRC. Cannot be combined with ids or upc.
+      schema:
+        type: string
+      example: USRC17607839
+
+    LookupUpc:
+      name: upc
+      in: query
+      required: false
+      description: Album UPC. Cannot be combined with ids or isrc.
+      schema:
+        type: string
+      example: "602455878540"
 
     Include:
       name: include
