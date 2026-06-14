@@ -26,7 +26,7 @@ Example:
 }
 ```
 
-Lists and collections use `data` and `meta`.
+Lists use `data` and `meta`. Lookup collections use `data`.
 
 ## List
 
@@ -50,13 +50,10 @@ The usual maximum `limit` is 100.
 ```ts
 interface Collection<T extends Resource> {
   data: T[];
-  meta: {
-    missingIds: Id[];
-  };
 }
 ```
 
-Collections are used by lookup endpoints. Returned resources keep the request order. Missing ids are omitted from `data` and reported in `meta.missingIds`.
+Collections are used by lookup endpoints. Returned resources keep the request order. Missing ids are omitted from `data`.
 
 ## Raw Objects
 

@@ -127,7 +127,7 @@ paths:
       tags: [Songs]
       summary: Look up songs
       operationId: lookupSongs
-      description: Returns matching songs in request order. Missing ids are excluded and listed in meta.missingIds. A lookup request should contain at most 100 ids.
+      description: Returns matching songs in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/LookupId"
@@ -247,7 +247,7 @@ paths:
       tags: [Albums]
       summary: Look up albums
       operationId: lookupAlbums
-      description: Returns matching albums in request order. Missing ids are excluded and listed in meta.missingIds. A lookup request should contain at most 100 ids.
+      description: Returns matching albums in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/LookupId"
@@ -367,7 +367,7 @@ paths:
       tags: [Artists]
       summary: Look up artists
       operationId: lookupArtists
-      description: Returns matching artists in request order. Missing ids are excluded and listed in meta.missingIds. A lookup request should contain at most 100 ids.
+      description: Returns matching artists in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/LookupId"
@@ -485,7 +485,7 @@ paths:
       tags: [Playlists]
       summary: Look up playlists
       operationId: lookupPlaylists
-      description: Returns matching playlists in request order. Missing ids are excluded and listed in meta.missingIds. A lookup request should contain at most 100 ids.
+      description: Returns matching playlists in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/LookupId"
@@ -1065,15 +1065,6 @@ components:
           type: integer
           minimum: 0
 
-    CollectionMeta:
-      type: object
-      required: [missingIds]
-      properties:
-        missingIds:
-          type: array
-          items:
-            $ref: "#/components/schemas/Id"
-
     MusicFile:
       type: object
       required: [id, lossless, mimeType, sizeBytes, durationMs]
@@ -1423,47 +1414,39 @@ components:
 
     SongCollection:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Song"
-        meta:
-          $ref: "#/components/schemas/CollectionMeta"
 
     AlbumCollection:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Album"
-        meta:
-          $ref: "#/components/schemas/CollectionMeta"
 
     ArtistCollection:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Artist"
-        meta:
-          $ref: "#/components/schemas/CollectionMeta"
 
     PlaylistCollection:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Playlist"
-        meta:
-          $ref: "#/components/schemas/CollectionMeta"
 
     Search:
       type: object

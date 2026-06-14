@@ -12,7 +12,7 @@ interface Single<T extends Resource> {
 }
 ```
 
-Lists and collections use `data` and `meta`.
+Lists use `data` and `meta`. Lookup collections use `data`.
 
 ```ts
 interface List<T extends Resource> {
@@ -24,14 +24,11 @@ interface List<T extends Resource> {
 
 interface Collection<T extends Resource> {
   data: T[];
-  meta: {
-    missingIds: Id[];
-  };
 }
 ```
 
 `GET /` returns the raw `Metadata` object without a `data` wrapper.
 
-`/lookup?ids=...` returns a collection because it can contain mixed resource types and missing ids.
+`/lookup?ids=...` returns a collection because it can contain mixed resource types.
 
 `/search/{type}` returns a typed list.

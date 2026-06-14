@@ -18,7 +18,7 @@ The response is a `List<Song>`.
 
 ## Look Up Songs
 
-Use lookup when you already have ids or ISRCs. Lookup results keep the request order, omit missing resources, and report missing ids in `meta.missingIds`.
+Use lookup when you already have ids or ISRCs. Lookup results keep the request order and omit missing resources.
 
 ```http
 GET /songs/lookup?id=song_1,omm:song:song_2

@@ -36,7 +36,7 @@ paths:
       tags: [Lookup]
       summary: Look up metadata resources
       operationId: lookupResources
-      description: Returns matching resources in request order. Missing ids are excluded and listed in meta.missingIds.
+      description: Returns matching resources in request order. Missing ids are omitted from data.
       parameters:
         - $ref: "#/components/parameters/LookupIds"
         - $ref: "#/components/parameters/Include"
@@ -237,15 +237,6 @@ components:
           type: integer
           minimum: 0
 
-    CollectionMeta:
-      type: object
-      required: [missingIds]
-      properties:
-        missingIds:
-          type: array
-          items:
-            $ref: "#/components/schemas/Id"
-
     Song:
       allOf:
         - $ref: "#/components/schemas/Resource"
@@ -390,7 +381,7 @@ components:
 
     ResourceCollection:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
@@ -399,8 +390,6 @@ components:
               - $ref: "#/components/schemas/Song"
               - $ref: "#/components/schemas/Album"
               - $ref: "#/components/schemas/Artist"
-        meta:
-          $ref: "#/components/schemas/CollectionMeta"
 
     SearchTypeResponse:
       oneOf:

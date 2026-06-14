@@ -20,7 +20,7 @@ The response is `Single<Song | Album | Artist>`.
 GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
 ```
 
-The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data` and reported in `meta.missingIds`.
+The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data`.
 
 Lookup requests with `ids` support at most 100 ids.
 
