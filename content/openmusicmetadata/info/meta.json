@@ -1,0 +1,9 @@
+{
+  "title": "Info",
+  "icon": "pixelarticons:info-box",
+  "pages": [
+    "guide",
+    "endpoints",
+    "models"
+  ]
+}

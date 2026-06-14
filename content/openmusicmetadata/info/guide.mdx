@@ -1,0 +1,23 @@
+---
+title: Info
+description: Fetch database statistics.
+icon: pixelarticons:book-open
+---
+
+Use `GET /` to fetch current metadata counts.
+
+```http
+GET /
+```
+
+The response is the raw `Metadata` object.
+
+```json
+{
+  "stats": {
+    "songs": 120000,
+    "albums": 20000,
+    "artists": 15000
+  }
+}
+```

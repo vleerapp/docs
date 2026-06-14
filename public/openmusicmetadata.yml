@@ -1,384 +1,440 @@
 openapi: 3.1.0
 info:
   title: OpenMusicMetadata API
-  description: A centralized metadata server for the OpenMusic ecosystem.
   version: 1.0.0
+  description: Canonical metadata for OpenMusic songs, albums, and artists.
   license:
     name: AGPL-3.0
+
 servers:
   - url: https://api.vleer.app/metadata/v1
     description: Production server
+
+tags:
+  - name: Metadata
+  - name: Lookup
+  - name: Search
+
 paths:
-  /song/{id}:
+  /:
     get:
-      summary: Song
-      description: Retrieve a single song by its OMID
-      operationId: getSongById
-      tags:
-        - Song
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: "^[0-9a-z]{16}$"
-            description: 16-character OMID
-          description: Song OMID
+      tags: [Metadata]
+      summary: Get metadata stats
+      operationId: getMetadata
       responses:
         "200":
-          description: Song found
+          description: Metadata stats
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Song"
-        "404":
-          description: Song not found
-  /artist/{id}:
+                $ref: "#/components/schemas/Metadata"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /lookup:
     get:
-      summary: Artist
-      description: Retrieve a single artist by its OMID
-      operationId: getArtistById
-      tags:
-        - Artist
+      tags: [Lookup]
+      summary: Look up metadata resources
+      operationId: lookupResources
+      description: Returns matching resources in request order. Missing ids are excluded and listed in meta.missingIds.
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: "^[0-9a-z]{16}$"
-            description: 16-character OMID
-          description: Artist OMID
+        - $ref: "#/components/parameters/LookupIds"
+        - $ref: "#/components/parameters/Include"
+        - $ref: "#/components/parameters/FieldsSong"
+        - $ref: "#/components/parameters/FieldsAlbum"
+        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
-          description: Artist found
+          description: Resource collection
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Artist"
-        "404":
-          description: Artist not found
-  /album/{id}:
+                $ref: "#/components/schemas/ResourceCollection"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /lookup/{id}:
     get:
-      summary: Album
-      description: Retrieve a single album by its OMID
-      operationId: getAlbumById
-      tags:
-        - Album
+      tags: [Lookup]
+      summary: Look up one metadata resource
+      operationId: lookupResource
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: "^[0-9a-z]{16}$"
-            description: 16-character OMID
-          description: Album OMID
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/Include"
+        - $ref: "#/components/parameters/FieldsSong"
+        - $ref: "#/components/parameters/FieldsAlbum"
+        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
-          description: Album found
+          description: Resource
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Album"
-        "404":
-          description: Album not found
-  /search:
+                $ref: "#/components/schemas/ResourceSingle"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /search/{type}:
     get:
-      summary: Search
-      description: Search across songs, artists, and albums. Optionally filter by item type.
-      operationId: search
-      tags:
-        - Search
+      tags: [Search]
+      summary: Search one metadata resource type
+      operationId: searchType
       parameters:
-        - name: q
-          in: query
-          required: true
-          schema:
-            type: string
-          description: Search query
         - name: type
-          in: query
-          required: false
+          in: path
+          required: true
           schema:
             type: string
-            enum: [song, artist, album]
-          description: Filter by item type (song, artist, or album). If omitted, searches all types.
-        - name: artist
+            enum: [song, album, artist]
+        - name: name
           in: query
           required: false
+          description: Search by resource name.
           schema:
             type: string
-          description: Filter by artist name (applies to songs and albums)
         - name: album
           in: query
           required: false
+          description: Search or filter by album name.
           schema:
             type: string
-          description: Filter by album name (applies to songs)
-        - name: isrc
+        - name: artist
           in: query
           required: false
+          description: Search or filter by artist name.
           schema:
             type: string
-          description: Filter by ISRC code (applies to songs)
-        - name: upc
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Filter by UPC code (applies to albums)
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 100
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
+        - $ref: "#/components/parameters/Include"
+        - $ref: "#/components/parameters/FieldsSong"
+        - $ref: "#/components/parameters/FieldsAlbum"
+        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
           description: Search results
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      oneOf:
-                        - $ref: "#/components/schemas/SongSummary"
-                        - $ref: "#/components/schemas/Artist"
-                        - $ref: "#/components/schemas/Album"
-                  total:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
+                $ref: "#/components/schemas/SearchTypeResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
+  responses:
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: OpenMusicMetadata id.
+      schema:
+        $ref: "#/components/schemas/Id"
+
+    LookupIds:
+      name: ids
+      in: query
+      required: true
+      description: Comma-separated OpenMusicMetadata ids. Maximum 100 ids.
+      schema:
+        type: string
+      example: omm:song:1,omm:album:2,omm:artist:3
+
+    Include:
+      name: include
+      in: query
+      required: false
+      description: Comma-separated relationships to include. Songs support albums and artists. Albums support artists. Artists do not support includes.
+      schema:
+        type: string
+      examples:
+        song:
+          value: albums,artists
+        album:
+          value: artists
+
+    FieldsSong:
+      name: fields[song]
+      in: query
+      required: false
+      description: Comma-separated song fields.
+      schema:
+        type: string
+      example: name,artworkUrl,isrc
+
+    FieldsAlbum:
+      name: fields[album]
+      in: query
+      required: false
+      description: Comma-separated album fields.
+      schema:
+        type: string
+      example: name,artworkUrl,upc
+
+    FieldsArtist:
+      name: fields[artist]
+      in: query
+      required: false
+      description: Comma-separated artist fields.
+      schema:
+        type: string
+      example: name,artworkUrl
+
   schemas:
-    ArtistRef:
+    Metadata:
       type: object
-      description: Minimal artist reference (id and name only)
+      required: [stats]
+      properties:
+        stats:
+          type: object
+          required: [songs, albums, artists]
+          properties:
+            songs:
+              type: integer
+              minimum: 0
+            albums:
+              type: integer
+              minimum: 0
+            artists:
+              type: integer
+              minimum: 0
+
+    ResourceType:
+      type: string
+      enum: [song, album, artist]
+
+    Id:
+      type: string
+      description: OpenMusicMetadata id.
+      examples:
+        - omm:song:1
+        - omm:album:2
+        - omm:artist:3
+
+    Resource:
+      type: object
+      required: [id, type]
       properties:
         id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique artist OMID (16 chars)
-        name:
-          type: string
-          description: Artist name
-      required:
-        - id
-        - name
-    AlbumRef:
+          $ref: "#/components/schemas/Id"
+        type:
+          $ref: "#/components/schemas/ResourceType"
+
+    ArtworkUrl:
+      type: string
+      description: Artwork URL. It may contain {w} and {h} placeholders for client-selected width and height.
+
+    ListMeta:
       type: object
-      description: Minimal album reference (id and name only)
+      required: [total]
       properties:
-        id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique album OMID (16 chars)
-        name:
-          type: string
-          description: Album title
-      required:
-        - id
-        - name
-    SongSummary:
+        total:
+          type: integer
+          minimum: 0
+
+    CollectionMeta:
       type: object
-      description: Lightweight song returned by the search endpoint
+      required: [missingIds]
       properties:
-        id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique song OMID (16 chars)
-        name:
-          type: string
-          description: Song title
-        artist:
+        missingIds:
           type: array
           items:
-            $ref: "#/components/schemas/ArtistRef"
-          description: Artists (id and name only)
-        album:
-          type: array
-          items:
-            $ref: "#/components/schemas/AlbumRef"
-          description: Albums (id and name only)
-        genres:
-          type: array
-          items:
-            type: string
-          description: Genre names
-        image:
-          type: string
-          format: uri
-          description: Album artwork URL
-        disc_number:
-          type: integer
-          description: Disc number in multi-disc releases
-        track_number:
-          type: integer
-          description: Track number on album
-        duration:
-          type: integer
-          description: Track duration in seconds
-        isrc:
-          type: string
-          description: International Standard Recording Code
-        date:
-          type: string
-          description: Release date
-      required:
-        - id
-        - name
-        - artist
-        - album
-        - genres
-        - image
-        - disc_number
-        - track_number
-        - duration
-        - isrc
-        - date
+            $ref: "#/components/schemas/Id"
+
     Song:
+      allOf:
+        - $ref: "#/components/schemas/Resource"
+        - type: object
+          required: [type, attributes]
+          properties:
+            type:
+              const: song
+            attributes:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                albumName:
+                  type: string
+                artistName:
+                  type: string
+                isrc:
+                  type: string
+                artworkUrl:
+                  $ref: "#/components/schemas/ArtworkUrl"
+                trackNumber:
+                  type: integer
+                  minimum: 1
+                discNumber:
+                  type: integer
+                  minimum: 1
+                genres:
+                  type: array
+                  items:
+                    type: string
+                releaseDate:
+                  type: string
+                  description: Date string in YYYY, YYYY-MM, or YYYY-MM-DD form.
+                durationMs:
+                  type: integer
+                  minimum: 0
+            relationships:
+              type: object
+              properties:
+                albums:
+                  $ref: "#/components/schemas/AlbumList"
+                artists:
+                  $ref: "#/components/schemas/ArtistList"
+
+    Album:
+      allOf:
+        - $ref: "#/components/schemas/Resource"
+        - type: object
+          required: [type, attributes]
+          properties:
+            type:
+              const: album
+            attributes:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                trackCount:
+                  type: integer
+                  minimum: 0
+                artistName:
+                  type: string
+                artworkUrl:
+                  $ref: "#/components/schemas/ArtworkUrl"
+                upc:
+                  type: string
+                genres:
+                  type: array
+                  items:
+                    type: string
+                releaseDate:
+                  type: string
+                  description: Date string in YYYY, YYYY-MM, or YYYY-MM-DD form.
+            relationships:
+              type: object
+              properties:
+                artists:
+                  $ref: "#/components/schemas/ArtistList"
+
+    Artist:
+      allOf:
+        - $ref: "#/components/schemas/Resource"
+        - type: object
+          required: [type, attributes]
+          properties:
+            type:
+              const: artist
+            attributes:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                artworkUrl:
+                  $ref: "#/components/schemas/ArtworkUrl"
+
+    ResourceSingle:
       type: object
-      description: Full song returned by /song/{id} with nested full objects
+      required: [data]
       properties:
-        id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique song OMID (16 chars)
-        name:
-          type: string
-          description: Song title
-        artist:
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/Song"
+            - $ref: "#/components/schemas/Album"
+            - $ref: "#/components/schemas/Artist"
+
+    SongList:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
           type: array
           items:
-            $ref: "#/components/schemas/Artist"
-          description: Full artist objects
-        album:
+            $ref: "#/components/schemas/Song"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+
+    AlbumList:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
           type: array
           items:
             $ref: "#/components/schemas/Album"
-          description: Full album objects
-        genres:
-          type: array
-          items:
-            type: string
-          description: Genre names
-        image:
-          type: string
-          format: uri
-          description: Album artwork URL
-        disc_number:
-          type: integer
-          description: Disc number in multi-disc releases
-        track_number:
-          type: integer
-          description: Track number on album
-        duration:
-          type: integer
-          description: Track duration in seconds
-        isrc:
-          type: string
-          description: International Standard Recording Code
-        date:
-          type: string
-          description: Release date
-      required:
-        - id
-        - name
-        - artist
-        - album
-        - genres
-        - image
-        - disc_number
-        - track_number
-        - duration
-        - isrc
-        - date
-    Artist:
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+
+    ArtistList:
       type: object
+      required: [data, meta]
       properties:
-        id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique artist OMID (16 chars)
-        name:
-          type: string
-          description: Artist name
-        image:
-          type: string
-          format: uri
-          description: Artist artwork URL
-        genres:
-          type: array
-          items:
-            type: string
-          description: Genre names
-      required:
-        - id
-        - name
-        - image
-        - genres
-    Album:
-      type: object
-      properties:
-        id:
-          type: string
-          pattern: "^[0-9a-z]{16}$"
-          description: Unique album OMID (16 chars)
-        name:
-          type: string
-          description: Album title
-        artist:
+        data:
           type: array
           items:
             $ref: "#/components/schemas/Artist"
-          description: Full artist objects
-        genres:
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+
+    ResourceCollection:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
           type: array
           items:
-            type: string
-          description: Genre names
-        image:
+            oneOf:
+              - $ref: "#/components/schemas/Song"
+              - $ref: "#/components/schemas/Album"
+              - $ref: "#/components/schemas/Artist"
+        meta:
+          $ref: "#/components/schemas/CollectionMeta"
+
+    SearchTypeResponse:
+      oneOf:
+        - $ref: "#/components/schemas/SongList"
+        - $ref: "#/components/schemas/AlbumList"
+        - $ref: "#/components/schemas/ArtistList"
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [status, message]
+          properties:
+            status:
+              type: integer
+              minimum: 100
+              maximum: 599
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                $ref: "#/components/schemas/ErrorDetail"
+            requestId:
+              type: string
+
+    ErrorDetail:
+      type: object
+      required: [message]
+      properties:
+        message:
           type: string
-          format: uri
-          description: Album artwork URL
-        date:
+        param:
           type: string
-          description: Release date
-        track_count:
-          type: integer
-          description: Number of tracks on album
-        upc:
-          type: string
-          description: Universal Product Code
-        label:
-          type:
-            - string
-            - "null"
-          description: Record label name
-      required:
-        - id
-        - name
-        - artist
-        - genres
-        - image
-        - date
-        - track_count
-        - upc
+        value: {}

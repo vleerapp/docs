@@ -1,0 +1,49 @@
+---
+title: Lookup
+description: Fetch resources by OpenMusicMetadata id.
+icon: pixelarticons:book-open
+---
+
+Use lookup when you already have one or more OpenMusicMetadata ids.
+
+## One Resource
+
+```http
+GET /lookup/omm:song:1
+```
+
+The response is `Single<Song | Album | Artist>`.
+
+## Many Resources
+
+```http
+GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
+```
+
+The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data` and reported in `meta.missingIds`.
+
+Lookup requests with `ids` support at most 100 ids.
+
+## Includes
+
+Songs can include albums and artists:
+
+```http
+GET /lookup/omm:song:1?include=albums,artists
+```
+
+Albums can include artists:
+
+```http
+GET /lookup/omm:album:2?include=artists
+```
+
+Artists do not support includes.
+
+## Fields
+
+Use scoped fields to keep responses small.
+
+```http
+GET /lookup/omm:song:1?fields[song]=name,isrc&fields[artist]=name
+```

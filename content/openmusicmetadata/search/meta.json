@@ -1,0 +1,8 @@
+{
+  "title": "Search",
+  "icon": "pixelarticons:search",
+  "pages": [
+    "guide",
+    "endpoints"
+  ]
+}

@@ -6,7 +6,14 @@
   "pages": [
     "---Introduction---",
     "index",
-    "---API Spec---",
-    "endpoints"
+    "---API Specifications---",
+    "implementation",
+    "responses",
+    "error-response",
+    "---Guides---",
+    "info",
+    "lookup",
+    "search",
+    "resources"
   ]
 }

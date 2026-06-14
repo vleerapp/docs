@@ -3,13 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "generate:docs": "bun run scripts/generate-docs.ts",
-    "predev": "npm run generate:docs",
-    "prebuild": "npm run generate:docs",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "postinstall": "fumadocs-mdx && npm run generate:docs"
+    "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

@@ -1,0 +1,24 @@
+---
+title: Error Response
+description: How errors are returned.
+icon: pixelarticons:warning-diamond
+---
+
+Errors use the same response shape as OpenMusic.
+
+```ts
+interface ErrorResponse {
+  error: {
+    status: number;
+    message: string;
+    details?: ErrorDetail[];
+    requestId?: string;
+  };
+}
+
+interface ErrorDetail {
+  message: string;
+  param?: string;
+  value?: unknown;
+}
+```

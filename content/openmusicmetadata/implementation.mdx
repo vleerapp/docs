@@ -1,0 +1,34 @@
+---
+title: API Specifications
+description: Core conventions used by OpenMusicMetadata.
+icon: pixelarticons:code
+---
+
+Resource ids are OpenMusicMetadata ids.
+
+```txt
+omm:song:1
+omm:album:2
+omm:artist:3
+```
+
+Each resource has an `id`, a singular `type`, `attributes`, and optional `relationships`.
+
+## Fields
+
+Fields are always scoped by resource type:
+
+```http
+GET /lookup/omm:song:1?fields[song]=name,isrc
+```
+
+## Includes
+
+OpenMusicMetadata supports only these includes:
+
+| Resource | Includes |
+| --- | --- |
+| `song` | `albums`, `artists` |
+| `album` | `artists` |
+
+Included relationships are returned completely for the metadata record.

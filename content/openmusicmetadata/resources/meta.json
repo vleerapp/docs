@@ -1,0 +1,8 @@
+{
+  "title": "Resources",
+  "icon": "pixelarticons:database",
+  "pages": [
+    "guide",
+    "models"
+  ]
+}

@@ -1,0 +1,26 @@
+---
+title: Resources
+description: Canonical metadata resource types.
+icon: pixelarticons:book-open
+---
+
+OpenMusicMetadata resources use the same core resource shape as OpenMusic.
+
+```ts
+type Type = "song" | "album" | "artist";
+
+interface Resource {
+  id: `omm:${Type}:${string}`;
+  type: Type;
+}
+```
+
+## Relationships
+
+Only these relationships are supported:
+
+| Resource | Relationships |
+| --- | --- |
+| `song` | `albums`, `artists` |
+| `album` | `artists` |
+| `artist` | none |

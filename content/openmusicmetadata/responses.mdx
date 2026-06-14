@@ -1,0 +1,37 @@
+---
+title: Responses
+description: Shared OpenMusicMetadata response shapes.
+icon: pixelarticons:menu-square
+---
+
+`/lookup/{id}` returns one resource in `data`.
+
+```ts
+interface Single<T extends Resource> {
+  data: T;
+}
+```
+
+Lists and collections use `data` and `meta`.
+
+```ts
+interface List<T extends Resource> {
+  data: T[];
+  meta: {
+    total?: number;
+  };
+}
+
+interface Collection<T extends Resource> {
+  data: T[];
+  meta: {
+    missingIds: Id[];
+  };
+}
+```
+
+`GET /` returns the raw `Metadata` object without a `data` wrapper.
+
+`/lookup?ids=...` returns a collection because it can contain mixed resource types and missing ids.
+
+`/search/{type}` returns a typed list.

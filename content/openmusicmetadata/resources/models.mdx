@@ -1,0 +1,61 @@
+---
+title: Resource Models
+description: Song, album, and artist model shapes.
+icon: pixelarticons:menu-square
+---
+
+## Song
+
+```ts
+interface Song extends Resource {
+  type: "song";
+  attributes: {
+    name: string;
+    albumName?: string;
+    artistName?: string;
+    isrc?: string;
+    artworkUrl?: string;
+    trackNumber?: number;
+    discNumber?: number;
+    genres?: string[];
+    releaseDate?: string;
+    durationMs?: number;
+  };
+  relationships?: {
+    albums?: List<Album>;
+    artists?: List<Artist>;
+  };
+}
+```
+
+## Album
+
+```ts
+interface Album extends Resource {
+  type: "album";
+  attributes: {
+    name: string;
+    trackCount?: number;
+    artistName?: string;
+    artworkUrl?: string;
+    upc?: string;
+    genres?: string[];
+    releaseDate?: string;
+  };
+  relationships?: {
+    artists?: List<Artist>;
+  };
+}
+```
+
+## Artist
+
+```ts
+interface Artist extends Resource {
+  type: "artist";
+  attributes: {
+    name: string;
+    artworkUrl?: string;
+  };
+}
+```

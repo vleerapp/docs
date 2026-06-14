@@ -1,0 +1,24 @@
+---
+title: Search
+description: Search one metadata resource type.
+icon: pixelarticons:book-open
+---
+
+OpenMusicMetadata search is typed. Search one resource type at a time.
+
+```http
+GET /search/song?name=blue
+GET /search/album?name=blue
+GET /search/artist?name=blue
+```
+
+Search can also use album and artist name query parameters.
+
+```http
+GET /search/song?name=blue&album=example&artist=artist
+GET /search/album?name=example&artist=artist
+```
+
+The response is a typed list, for example `List<Song>` for `/search/song`.
+
+Search supports `fields[...]` and `include`.
