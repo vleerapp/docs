@@ -1,51 +1,21 @@
 ---
 title: Artist Models
-description: The artist resource types used across the OpenMusic API.
+description: Artist resource shape.
 icon: pixelarticons:menu-square
 ---
 
-## BaseArtist
-
-Minimal artist resource shape used for `view=minimal` and nested relationships.
-
-```ts
-interface BaseArtist extends ResourceBase {
-  type: "artists";
-  meta: {
-    omm_id: string | null;
-  };
-  relationships?: {
-    albums?: (Album | BaseAlbum)[];
-    songs?: (Song | BaseSong)[];
-  };
-}
-```
-
-- [`ResourceBase`](/openmusic/resources#resourcebase)
-- [`Albums`](/openmusic/albums/get-an-album)
-- [`Songs`](/openmusic/songs/get-a-song)
-
 ## Artist
 
-Full artist resource returned when attributes are requested; extends `BaseArtist`.
-
 ```ts
-interface Artist extends BaseArtist {
-  attributes: ArtistAttributes;
-}
-```
-
-- [`BaseArtist`](#baseartist)
-- [`ArtistAttributes`](#artistattributes)
-
-## ArtistAttributes
-
-Full metadata fields attached to `Artist`.
-
-```ts
-interface ArtistAttributes {
-  name: string;
-  artwork_url: string | null;
-  genres: string[];
+interface Artist extends Resource {
+  type: "artist";
+  attributes: {
+    name: string;
+    artworkUrl?: string;
+  };
+  relationships?: {
+    tracks?: List<Song>;
+    albums?: List<Album>;
+  };
 }
 ```

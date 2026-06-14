@@ -1,60 +1,30 @@
 ---
 title: Album Models
-description: The album resource types used across the OpenMusic API.
+description: Album resource shape.
 icon: pixelarticons:menu-square
 ---
 
-## BaseAlbum
-
-Minimal album resource shape used for `view=minimal` and nested relationships.
-
-```ts
-interface BaseAlbum extends ResourceBase {
-  type: "albums";
-  meta: {
-    omm_id: string | null;
-  };
-  relationships?: {
-    tracks?: (Song | BaseSong)[];
-    artists?: (Artist | BaseArtist)[];
-  };
-}
-```
-
-- [`ResourceBase`](/openmusic/resources#resourcebase)
-- [`Songs`](/openmusic/songs/get-a-song)
-- [`Artists`](/openmusic/artists/get-an-artist)
-
 ## Album
 
-Full album resource returned when attributes are requested; extends `BaseAlbum`.
-
 ```ts
-interface Album extends BaseAlbum {
-  attributes: AlbumAttributes;
+interface Album extends Resource {
+  type: "album";
+  attributes: {
+    name: string;
+    trackCount: number;
+    artistName?: string;
+    artworkUrl?: string;
+    upc?: string;
+    genres?: string[];
+    releaseDate?: string;
+  };
+  relationships?: {
+    tracks?: List<Song>;
+    artists?: List<Artist>;
+  };
 }
 ```
 
-- [`BaseAlbum`](#basealbum)
-- [`AlbumAttributes`](#albumattributes)
+`releaseDate` may be `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`.
 
-## AlbumAttributes
-
-Full metadata fields attached to `Album`.
-
-`artist_name` is a fallback display field for cases where artist relationships
-are unavailable.
-It should also be populated by implementations that do expose artist
-relationships, whenever the value is available.
-
-```ts
-interface AlbumAttributes {
-  name: string;
-  artist_name: string | null;
-  upc: string | null;
-  artwork_url: string | null;
-  track_count: number | null;
-  genres: string[];
-  release_date: string | null;
-}
-```
+`artistName` is a display fallback. Use `relationships.artists` when the client needs structured artist data.

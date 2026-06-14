@@ -1,16 +1,40 @@
 ---
 title: Resources
-description: Common Resource Types.
+description: Resource identifiers and shared resource fields.
 icon: pixelarticons:menu-square
 ---
 
-## ResourceBase
+## Resource
 
-Base shape shared by every OpenMusic resource object.
+All catalog objects share `id` and `type`.
 
 ```ts
-interface ResourceBase {
-  id: string;
-  type: string;
+type Type = "song" | "artist" | "album" | "playlist" | "station";
+
+type Id = string | `omm:${Type}:${string}`;
+
+interface Resource {
+  id: Id;
+  type: Type;
 }
 ```
+
+`id` can be a provider-local id or an OpenMusicMetadata id. OpenMusicMetadata ids use the form `omm:type:id`, for example `omm:song:123456789`.
+
+## Attributes
+
+Resource-specific data lives in `attributes`. Examples include `name`, `releaseDate`, `artworkUrl`, and file metadata.
+
+`artworkUrl` may contain `{w}` and `{h}` placeholders. Clients can replace them with the requested width and height.
+
+`releaseDate` is a string. It may contain a year, a year and month, or a full date:
+
+```txt
+2026
+2026-06
+2026-06-14
+```
+
+## Relationships
+
+Relationships are optional. If a relationship key is omitted, that relationship was not included in the response. If a relationship key is present with an empty list, the relationship was included and no related resources were found.

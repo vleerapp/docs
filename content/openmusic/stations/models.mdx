@@ -1,56 +1,32 @@
 ---
 title: Station Models
-description: The station resource types used across the OpenMusic API.
+description: Station resource and seed shapes.
 icon: pixelarticons:menu-square
 ---
 
-## BaseStation
-
-Minimal station resource shape used for `view=minimal` and nested relationships.
-
-```ts
-interface BaseStation extends ResourceBase {
-  type: "stations";
-  relationships?: {
-    tracks?: (Song | BaseSong)[];
-  };
-}
-```
-
 ## Station
 
-Full station resource returned when attributes are requested; extends `BaseStation`.
-
 ```ts
-interface Station extends BaseStation {
-  attributes: StationAttributes;
-}
-```
-
-- [`BaseStation`](#basestation)
-- [`StationAttributes`](#stationattributes)
-
-## StationAttributes
-
-Full metadata fields attached to `Station`.
-
-```ts
-interface StationAttributes {
-  name: string;
-  seed: StationSeed;
-  description: string | null;
-  artwork_url: string | null;
-  genres: string[];
+interface Station extends Resource {
+  type: "station";
+  attributes: {
+    name: string;
+    seed: StationSeed;
+    artworkUrl?: string;
+    description?: string;
+  };
+  relationships?: {
+    tracks?: List<Song>;
+  };
 }
 ```
 
 ## StationSeed
 
-Describes how the station was generated (artist, genre, or popular).
-
 ```ts
 type StationSeed =
-  | { kind: "artist"; artist: BaseArtist }
-  | { kind: "genre"; genre: string }
-  | { kind: "popular" };
+  | { kind: "resource"; type: "song" | "album" | "artist"; id: Id }
+  | { kind: "genre"; name: string }
+  | { kind: "popular" }
+  | { kind: "custom" };
 ```

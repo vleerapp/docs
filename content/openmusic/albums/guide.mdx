@@ -1,0 +1,56 @@
+---
+title: Albums
+description: Fetch albums, look them up, and request album relationships.
+icon: pixelarticons:album
+---
+
+Albums group songs into releases. They expose release metadata and can include tracks and artists.
+
+## List Albums
+
+```http
+GET /albums?limit=25&offset=0&sort=releaseDate
+```
+
+The response is a `List<Album>`.
+
+## Look Up Albums
+
+Albums can be looked up by id or UPC.
+
+```http
+GET /albums/lookup?id=album_1,omm:album:album_2
+GET /albums/lookup?upc=602547673951,888430877625
+```
+
+Lookup requests should contain at most 100 ids.
+
+## Fetch One Album
+
+```http
+GET /album/album_123
+```
+
+The response is `Single<Album>`.
+
+## Include Relationships
+
+```http
+GET /album/album_123?include=tracks,artists
+GET /album/album_123?include=tracks,tracks.artists
+```
+
+Use scoped fields to keep large responses small:
+
+```http
+GET /album/album_123?include=tracks&fields[album]=name,artworkUrl&fields[song]=name,durationMs
+```
+
+## Relationship Endpoints
+
+```http
+GET /album/album_123/rel/tracks
+GET /album/album_123/rel/artists
+```
+
+Relationship endpoints return lists and support `fields[...]`, `limit`, `offset`, and `sort`.

@@ -1,0 +1,55 @@
+---
+title: Artists
+description: Fetch artists and their albums or tracks.
+icon: pixelarticons:user
+---
+
+Artists represent performers, creators, or catalog artist pages.
+
+## List Artists
+
+```http
+GET /artists?limit=25&offset=0&sort=name
+```
+
+The response is a `List<Artist>`.
+
+## Look Up Artists
+
+Artists can be looked up by id.
+
+```http
+GET /artists/lookup?id=artist_1,omm:artist:artist_2
+```
+
+Lookup requests should contain at most 100 ids.
+
+## Fetch One Artist
+
+```http
+GET /artist/artist_123
+```
+
+The response is `Single<Artist>`.
+
+## Include Relationships
+
+```http
+GET /artist/artist_123?include=albums,tracks
+GET /artist/artist_123?include=albums,albums.tracks
+```
+
+Fields are scoped by resource type:
+
+```http
+GET /artist/artist_123?include=albums&fields[artist]=name,artworkUrl&fields[album]=name,releaseDate
+```
+
+## Relationship Endpoints
+
+```http
+GET /artist/artist_123/rel/albums
+GET /artist/artist_123/rel/tracks
+```
+
+Relationship endpoints return lists and support `fields[...]`, `limit`, `offset`, and `sort`.

@@ -1,0 +1,79 @@
+---
+title: Songs
+description: Fetch, look up, and relate song resources.
+icon: pixelarticons:music
+---
+
+Songs are the main playable resource. A song contains display metadata, one preferred file, optional alternative files, and relationships to albums and artists.
+
+## List Songs
+
+Use `GET /songs` to page through the catalog.
+
+```http
+GET /songs?limit=25&offset=0&sort=name
+```
+
+The response is a `List<Song>`.
+
+## Look Up Songs
+
+Use lookup when you already have ids or ISRCs. Lookup results keep the request order, omit missing resources, and report missing ids in `meta.missingIds`.
+
+```http
+GET /songs/lookup?id=song_1,omm:song:song_2
+GET /songs/lookup?isrc=USRC17607839,GBARL0600786
+```
+
+Lookup requests should contain at most 100 ids.
+
+## Fetch One Song
+
+Use `GET /song/{id}` when you know the song id.
+
+```http
+GET /song/song_123
+```
+
+The response is `Single<Song>`.
+
+## Include Relationships
+
+Use relationship names in `include`.
+
+```http
+GET /song/song_123?include=albums,artists
+GET /song/song_123?include=albums,albums.tracks
+```
+
+Fields are scoped by resource type:
+
+```http
+GET /song/song_123?fields[song]=name,artworkUrl
+```
+
+Included relationship lists can be limited and sorted:
+
+```http
+GET /song/song_123?include=albums,albums.tracks&limit[albums:tracks]=10&sort[albums:tracks]=name
+```
+
+## Relationship Endpoints
+
+Use relationship endpoints when you only need the related resources.
+
+```http
+GET /song/song_123/rel/albums
+GET /song/song_123/rel/artists
+```
+
+Relationship endpoints return lists and support `fields[...]`, `limit`, `offset`, and `sort`.
+
+## Files
+
+The preferred file is available at `attributes.files.preferred`. If a file does not include `streamUrl` or `downloadUrl`, use:
+
+```http
+GET /file/{fileId}/stream
+GET /file/{fileId}/download
+```

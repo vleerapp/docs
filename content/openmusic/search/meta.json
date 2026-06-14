@@ -2,13 +2,7 @@
   "title": "Search",
   "icon": "pixelarticons:bulletlist-sharp",
   "pages": [
-    "search-overview",
-    "search-songs",
-    "search-albums",
-    "search-artists",
-    "search-playlists",
-    "---Objects---",
-    "models",
-    "responses"
+    "guide",
+    "models"
   ]
 }

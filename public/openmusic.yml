@@ -168,7 +168,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Song"
+                $ref: "#/components/schemas/SongSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -288,7 +288,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Album"
+                $ref: "#/components/schemas/AlbumSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -407,7 +407,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Artist"
+                $ref: "#/components/schemas/ArtistSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -523,7 +523,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Playlist"
+                $ref: "#/components/schemas/PlaylistSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -576,7 +576,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Station"
+                $ref: "#/components/schemas/StationSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -603,7 +603,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Station"
+                $ref: "#/components/schemas/StationSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -625,7 +625,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Station"
+                $ref: "#/components/schemas/StationSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -648,7 +648,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Station"
+                $ref: "#/components/schemas/StationSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -1275,6 +1275,41 @@ components:
               properties:
                 tracks:
                   $ref: "#/components/schemas/SongList"
+
+    SongSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Song"
+
+    AlbumSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Album"
+
+    ArtistSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Artist"
+
+    PlaylistSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Playlist"
+
+    StationSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Station"
 
     SongList:
       type: object

@@ -1,0 +1,38 @@
+---
+title: Search
+description: Search multiple resource types or one resource type.
+icon: pixelarticons:search
+---
+
+Search responses are raw search objects or lists. They are not wrapped in `data` unless the returned model itself is a list.
+
+## Search Multiple Types
+
+Use `GET /search` for grouped results.
+
+```http
+GET /search?term=blue&types=song,album,artist,playlist,top
+```
+
+The response is a `Search` object with result groups such as `songs`, `albums`, `artists`, `playlists`, and `top`.
+
+## Search One Type
+
+Use typed search when the UI needs only one resource type.
+
+```http
+GET /search/song?term=blue
+GET /search/album?term=blue
+GET /search/artist?term=blue
+GET /search/playlist?term=blue
+```
+
+Typed search returns the matching list type, for example `List<Song>` for `/search/song`.
+
+## Suggestions
+
+```http
+GET /search/suggestions?term=blu
+```
+
+Suggestions return a raw string array.
