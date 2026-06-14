@@ -1,22 +1,20 @@
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
-import { createAPIPage } from "fumadocs-openapi/ui";
-import type { ComponentProps } from "react";
-import { openmusicmetadata, openmusic } from "@/scripts/openapi";
+import type { OperationItem, WebhookItem } from "fumadocs-openapi/ui";
+import { OpenAPIPage } from "@/src/components/openapi-page";
+import { openapiServer } from "@/scripts/openapi";
 
-const OpenMusicAPIPage = createAPIPage(openmusic);
-const OpenMusicMetadataAPIPage = createAPIPage(openmusicmetadata);
-type APIPageProps = ComponentProps<typeof OpenMusicAPIPage>;
+interface APIPageProps {
+  document: string;
+  operations?: OperationItem[];
+  webhooks?: WebhookItem[];
+  showTitle?: boolean;
+  showDescription?: boolean;
+}
 
-function APIPage({ document, ...props }: APIPageProps) {
-  switch (document) {
-    case "./public/openmusic.yml":
-      return <OpenMusicAPIPage document={document} {...props} />;
-    case "./public/openmusicmetadata.yml":
-      return <OpenMusicMetadataAPIPage document={document} {...props} />;
-    default:
-      throw new Error(`Unsupported OpenAPI document: ${document}`);
-  }
+async function APIPage({ document, ...props }: APIPageProps) {
+  const schema = await openapiServer.getSchema(document);
+  return <OpenAPIPage payload={{ bundled: schema.bundled }} {...props} />;
 }
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
