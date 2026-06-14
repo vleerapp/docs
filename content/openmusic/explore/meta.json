@@ -1,8 +1,9 @@
 {
   "title": "Explore",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:map",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }

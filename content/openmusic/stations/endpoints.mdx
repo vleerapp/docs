@@ -1,0 +1,14 @@
+---
+title: Endpoints
+description: Station endpoint reference.
+icon: pixelarticons:map
+full: true
+---
+
+<APIPage document={"./public/openmusic.yml"} operations={[
+  {"path":"/stations/{type}/{id}","method":"get"},
+  {"path":"/stations/genres/{name}","method":"get"},
+  {"path":"/stations/popular","method":"get"},
+  {"path":"/station/{id}","method":"get"},
+  {"path":"/station/{id}/tracks","method":"get"}
+]} />

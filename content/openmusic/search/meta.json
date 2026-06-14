@@ -1,8 +1,9 @@
 {
   "title": "Search",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:search",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }

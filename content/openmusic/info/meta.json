@@ -1,9 +1,10 @@
 {
   "title": "Info",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:info-box",
   "pages": [
     "guide",
     "authentication",
+    "endpoints",
     "models"
   ]
 }

@@ -1,8 +1,9 @@
 {
   "title": "Songs",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:music",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }

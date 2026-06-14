@@ -1,8 +1,9 @@
 {
   "title": "Playlists",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:playlist",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }

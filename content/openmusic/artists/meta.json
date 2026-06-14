@@ -1,8 +1,9 @@
 {
   "title": "Artists",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:user",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }

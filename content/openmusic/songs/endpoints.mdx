@@ -1,0 +1,16 @@
+---
+title: Endpoints
+description: Song and file endpoint reference.
+icon: pixelarticons:map
+full: true
+---
+
+<APIPage document={"./public/openmusic.yml"} operations={[
+  {"path":"/songs","method":"get"},
+  {"path":"/songs/lookup","method":"get"},
+  {"path":"/song/{id}","method":"get"},
+  {"path":"/song/{id}/rel/albums","method":"get"},
+  {"path":"/song/{id}/rel/artists","method":"get"},
+  {"path":"/file/{id}/stream","method":"get"},
+  {"path":"/file/{id}/download","method":"get"}
+]} />

@@ -1,8 +1,9 @@
 {
   "title": "Albums",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:album",
   "pages": [
     "guide",
+    "endpoints",
     "models"
   ]
 }
