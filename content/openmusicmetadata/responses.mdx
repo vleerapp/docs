@@ -4,7 +4,7 @@ description: Shared OpenMusicMetadata response shapes.
 icon: pixelarticons:menu-square
 ---
 
-`/lookup/{id}` returns one resource in `data`.
+Single resource:
 
 ```ts
 interface Single<T extends Resource> {
@@ -12,23 +12,10 @@ interface Single<T extends Resource> {
 }
 ```
 
-Lists use `data` and `meta`. Lookup collections use `data`.
+Resource list:
 
 ```ts
 interface List<T extends Resource> {
   data: T[];
-  meta: {
-    total?: number;
-  };
-}
-
-interface Collection<T extends Resource> {
-  data: T[];
 }
 ```
-
-`GET /` returns the raw `Metadata` object without a `data` wrapper.
-
-`/lookup?ids=...` returns a collection because it can contain mixed resource types. `/lookup?isrc=...` returns a song collection. `/lookup?upc=...` returns an album collection.
-
-`/match/{type}` returns one matched resource in `data`.

@@ -26,7 +26,7 @@ The response is `Single<Song | Album | Artist>`.
 GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
 ```
 
-The response is a `Collection<Song | Album | Artist>`.
+The response is `List<Song | Album | Artist>`.
 
 ## Many by ISRC
 
@@ -34,7 +34,7 @@ The response is a `Collection<Song | Album | Artist>`.
 GET /lookup?isrc=USRC17607839
 ```
 
-The response is a `Collection<Song>`.
+The response is `List<Song>`.
 
 ## Many by UPC
 
@@ -42,7 +42,7 @@ The response is a `Collection<Song>`.
 GET /lookup?upc=602455878540
 ```
 
-The response is a `Collection<Album>`.
+The response is `List<Album>`.
 
 ## Includes
 

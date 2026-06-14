@@ -11,23 +11,23 @@ servers:
     description: Production server
 
 tags:
-  - name: Metadata
+  - name: Info
   - name: Lookup
   - name: Match
 
 paths:
   /:
     get:
-      tags: [Metadata]
-      summary: Get metadata stats
-      operationId: getMetadata
+      tags: [Info]
+      summary: Get info
+      operationId: getInfo
       responses:
         "200":
-          description: Metadata stats
+          description: Info
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Metadata"
+                $ref: "#/components/schemas/Info"
         default:
           $ref: "#/components/responses/Error"
 
@@ -47,11 +47,11 @@ paths:
         - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
-          description: Resource collection
+          description: Resource list
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceCollection"
+                $ref: "#/components/schemas/ResourceList"
         default:
           $ref: "#/components/responses/Error"
 
@@ -207,7 +207,7 @@ components:
       example: name,artworkUrl
 
   schemas:
-    Metadata:
+    Info:
       type: object
       required: [stats]
       properties:
@@ -249,14 +249,6 @@ components:
     ArtworkUrl:
       type: string
       description: Artwork URL. It may contain {w} and {h} placeholders for client-selected width and height.
-
-    ListMeta:
-      type: object
-      required: [total]
-      properties:
-        total:
-          type: integer
-          minimum: 0
 
     Song:
       allOf:
@@ -369,38 +361,32 @@ components:
 
     SongList:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Song"
-        meta:
-          $ref: "#/components/schemas/ListMeta"
 
     AlbumList:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Album"
-        meta:
-          $ref: "#/components/schemas/ListMeta"
 
     ArtistList:
       type: object
-      required: [data, meta]
+      required: [data]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/Artist"
-        meta:
-          $ref: "#/components/schemas/ListMeta"
 
-    ResourceCollection:
+    ResourceList:
       type: object
       required: [data]
       properties:
