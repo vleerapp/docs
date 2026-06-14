@@ -1,0 +1,41 @@
+---
+title: Error Response
+description: How to return and parse errors.
+icon: pixelarticons:warning-diamond
+---
+
+Errors use the same response shape across the API.
+
+```ts
+interface ErrorResponse {
+  error: {
+    status: number;
+    message: string;
+    details?: ErrorDetail[];
+    requestId?: string;
+  };
+}
+
+interface ErrorDetail {
+  message: string;
+  param?: string;
+  value?: unknown;
+}
+```
+
+Fields:
+
+| Field | Description |
+| --- | --- |
+| `status` | HTTP status code. |
+| `message` | Short description of what went wrong. |
+| `details` | Optional list of specific request issues. |
+| `requestId` | Optional id used for logs and support. If shown to users, make it easy to copy. |
+
+## Error Details
+
+Use error details when one response needs to point out multiple request issues. Use one detail per invalid item.
+
+- `message`: Short description of the issue
+- `param`: The affected query parameter, for example `fields[song]`
+- `value`: The invalid value

@@ -1,10 +1,10 @@
 {
   "title": "Info",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:info-box",
   "pages": [
-    "get-api-info",
-    "---Objects---",
-    "models",
-    "responses"
+    "guide",
+    "authentication",
+    "endpoints",
+    "models"
   ]
 }

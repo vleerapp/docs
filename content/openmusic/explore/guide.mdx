@@ -1,0 +1,42 @@
+---
+title: Explore
+description: Fetch server-curated discovery sections.
+icon: pixelarticons:book-open
+---
+
+Explore is an optional endpoint for home screens, discovery pages, and curated catalog sections. Check the `explore` capability from `GET /` before using it.
+
+```http
+GET /explore
+```
+
+The response is a raw array of sections.
+
+Each section has a title, a resource type, and a list of resources of that type.
+
+`limit` controls the usual maximum number of resources per section. The usual maximum is 100.
+
+```json
+[
+  {
+    "title": "New Albums",
+    "type": "album",
+    "data": [
+      {
+        "id": "album_123",
+        "type": "album",
+        "attributes": {
+          "name": "Example Album",
+          "trackCount": 12
+        }
+      }
+    ]
+  }
+]
+```
+
+Use scoped fields to keep explore payloads small:
+
+```http
+GET /explore?fields[album]=name,artworkUrl&fields[song]=name,artistName
+```

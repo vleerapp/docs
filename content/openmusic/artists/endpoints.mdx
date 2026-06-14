@@ -1,0 +1,14 @@
+---
+title: Endpoints
+description: Artist endpoint reference.
+icon: pixelarticons:code
+full: true
+---
+
+<APIPage document={"./public/openmusic.yml"} operations={[
+  {"path":"/artists","method":"get"},
+  {"path":"/artists/lookup","method":"get"},
+  {"path":"/artist/{id}","method":"get"},
+  {"path":"/artist/{id}/rel/tracks","method":"get"},
+  {"path":"/artist/{id}/rel/albums","method":"get"}
+]} />

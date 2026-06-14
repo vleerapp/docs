@@ -1,48 +1,23 @@
 ---
 title: Playlist Models
-description: The playlist resource types used across the OpenMusic API.
+description: Playlist resource shape.
 icon: pixelarticons:menu-square
 ---
 
-## BasePlaylist
-
-Minimal playlist resource shape used for `view=minimal` and nested relationships.
-
-```ts
-interface BasePlaylist extends ResourceBase {
-  type: "playlists";
-  relationships?: {
-    tracks?: (Song | BaseSong)[];
-  };
-}
-```
-
-- [`ResourceBase`](/openmusic/resources#resourcebase)
-- [`Songs`](/openmusic/songs/get-a-song)
-
 ## Playlist
 
-Full playlist resource returned when attributes are requested; extends `BasePlaylist`.
-
 ```ts
-interface Playlist extends BasePlaylist {
-  attributes: PlaylistAttributes;
-}
-```
-
-- [`BasePlaylist`](#baseplaylist)
-- [`PlaylistAttributes`](#playlistattributes)
-
-## PlaylistAttributes
-
-Full metadata fields attached to `Playlist`.
-
-```ts
-interface PlaylistAttributes {
-  name: string;
-  curator_name: string;
-  description: string | null;
-  artwork_url: string | null;
-  genres: string[];
+interface Playlist extends Resource {
+  type: "playlist";
+  attributes: {
+    name: string;
+    trackCount: number;
+    curatorName?: string;
+    artworkUrl?: string;
+    description?: string;
+  };
+  relationships?: {
+    tracks?: List<Song>;
+  };
 }
 ```

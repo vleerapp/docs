@@ -8,8 +8,10 @@
     "index",
     "---API Specifications---",
     "implementation",
-    "endpoints",
-    "---Requests---",
+    "resources",
+    "responses",
+    "error-response",
+    "---Guides---",
     "info",
     "songs",
     "albums",
@@ -17,8 +19,6 @@
     "playlists",
     "stations",
     "search",
-    "---Objects---",
-    "resources",
-    "responses"
+    "explore"
   ]
 }

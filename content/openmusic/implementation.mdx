@@ -1,337 +1,79 @@
 ---
-title: Implementation
-description: How to implement the OpenMusic API spec in practice
+title: API Specifications
+description: Core conventions used by OpenMusic implementations.
 icon: pixelarticons:code
 ---
 
-import { GithubInfo } from "fumadocs-ui/components/github-info";
-import { Icon } from "@iconify/react";
+All OpenMusic endpoints are served below the API base URL, for example `https://api.example.com/api`.
 
-OpenMusic is a read-only music API spec for exposing songs and related metadata
-through a consistent resource model.
+The specification uses a small set of resource types:
 
-We maintain **openmusic-fs** as the reference implementation and a production-ready
-local filesystem adapter in Go.
+- `song`
+- `album`
+- `artist`
+- `playlist`
+- `station`
 
-<GithubInfo owner="vleerapp" repo="openmusic-fs" />
+Each resource has an `id`, a singular `type`, an `attributes` object, and optional `relationships`.
 
-It is the implementation used to validate and evolve the spec.
-
-## Downloads
-
-<Cards cols={2}>
-  <Card
-    title="Download OpenMusic YAML"
-    href="/openmusic.yml"
-    download="openmusic.yml"
-    icon={<Icon icon="pixelarticons:download" />}
-    description="OpenMusic OpenAPI Specifications"
-  />
-</Cards>
-
-## Core Model
-
-An OpenMusic server exposes resource objects such as:
-
-- songs
-- albums
-- artists
-- playlists
-- stations
-
-Most responses follow the same structure:
-
-- `data` wrapper
-- `id` and `type`
-- `attributes` for the full representation
-- `relationships` for linked resources
-
-This lets clients work with different resource types in a predictable way.
-
-`relationships` is optional.
-If it is omitted, no relationships were included in that resource payload.
-If a relationship key is present with an empty array, it means the relationship
-was included and no related resources were found.
-
-## Capabilities
-
-Clients should not assume every endpoint family is available.
-Instead, they should call the info endpoint first and inspect the returned
-capability flags.
-
-| Feature                  | Type     | Description                             |
-| ------------------------ | -------- | --------------------------------------- |
-| [`info`](#info)          | Required | Return branding and capability metadata |
-| [`search`](#search)      | Required | Search songs and optionally other types |
-| [`song`](#song)          | Required | Fetch a song by id                      |
-| `download`               | Required | Provide downloadable song files         |
-| `stream`                 | Optional | Provide stream URLs for song files      |
-| [`artists`](#artist)     | Optional | Search and fetch artists                |
-| [`albums`](#album)       | Optional | Search and fetch albums                 |
-| [`playlists`](#playlist) | Optional | Search and fetch playlists              |
-| [`stations`](#station)   | Optional | Expose generated stations               |
-| `sort`                   | Optional | Support `sort` on listing endpoints     |
-| `lyrics`                 | Optional | Expose lyrics data                      |
-
-When relationship capabilities are unavailable (for example `artists` or
-`albums`), fallback display fields can be used in attributes:
-`artist_name` and `album_name` on songs, and `artist_name` on albums.
-Implementations that do expose these relationships should still populate these
-fields whenever the values are available.
-
-## Endpoint Families
-
-Current endpoint families in the spec:
-
-```yml
-/api:
-  /: # info
-  /songs: # sortable
-    /{id}:
-      /rel:
-        /albums:
-        /artists:
-        /lyrics:
-  /albums: # sortable
-    /{id}:
-      /rel:
-        /tracks:
-        /artists:
-  /artists: # sortable
-    /{id}:
-      /rel:
-        /albums: # sortable
-        /songs: # sortable
-  /playlists: # sortable
-    /{id}:
-      /rel:
-        /tracks:
-  /stations:
-    /artist:
-      /{id}:
-        /rel:
-          /tracks:
-    /genre:
-      /{genre}:
-        /rel:
-          /tracks:
-    /popular:
-      /rel:
-        /tracks:
-  /search:
-    /:
-    /songs:
-    /albums:
-    /artists:
-    /playlists:
-```
-
-## Query Model
-
-Many endpoints share the same query concepts.
-
-| Name             | Description                      | Type                                          | Example                            |
-| ---------------- | -------------------------------- | --------------------------------------------- | ---------------------------------- |
-| `lang`           | Preferred language               | `string`                                      | `lang=en-US`                       |
-| `omm_ids`        | Lookup by OpenMusicMetadata IDs  | `string`                                      | `omm_ids=tz4a98xxat96iws9zmbrgj3a` |
-| `view`           | Return the minimal resource form | `"minimal"`                                   | `view=minimal`                     |
-| `include`        | Include direct relationships     | `string`                                      | `include=artists,albums`           |
-| `limit`          | Response list size               | `number`                                      | `limit=10`                         |
-| `offset`         | Number of items to skip          | `number`                                      | `offset=10`                        |
-| `sort`           | Sort ascending or descending     | `"-?date_released"\|"-?date_added"\|"-?name"` | `sort=-date_released`              |
-| `filter[genres]` | Filter by genre                  | `string`                                      | `filter[genres]=pop,rock`          |
-
-`omm_ids` is only supported on lookup endpoints (`/songs`, `/albums`, `/artists`).
-`sort` is supported on base resource listing requests and on these relationship endpoints:
-
-- `/artists/{id}/rel/albums`
-- `/artists/{id}/rel/songs`
-- `/stations/artist/{id}/rel/tracks`
-- `/stations/genre/{genre}/rel/tracks`
-- `/stations/popular/rel/tracks`
-
-## Language
-
-`lang` should use a locale string such as `en-US`, `de-CH`, or `ja-JP`.
-
-OpenMusic implementations do not have to provide localized data at all.
-If an implementation does support localization, `en-US` is the recommended
-default locale.
-
-If `lang` is omitted or the requested locale is unavailable, the implementation
-should fall back to `en-US` when possible.
-
-Scoped parameters apply to included relationships.
-
-Examples:
-
-- `view[albums]=minimal`
-- `view[artists]=minimal`
-- `limit[albums]=5`
-- `limit[artists]=10`
-
-This allows a client to fetch a rich main resource while keeping nested related
-resources compact.
-
-## OMM IDs
-
-`omm_ids` are canonical IDs from OpenMusicMetadata.
-
-These identifiers are generally CUID2 strings (for example
-`tz4a98xxat96iws9zmbrgj3a`) and are used to map the same song, album, or artist
-across different OpenMusic implementations.
-
-Use `omm_ids` when you need cross-source identity instead of source-specific
-lookup keys like `ids`, `isrc`, or `upc`.
-
-## Info
-
-The info endpoint should be the first request a client makes.
-
-It returns:
-
-- branding metadata for display
-- the supported OpenMusic spec version
-- capability flags describing which optional families are implemented
-
-More detail:
-
-- [`Info`](/openmusic/info/get-api-info)
-
-## Search
-
-Search includes a bucketed endpoint and typed endpoints for songs, albums,
-artists, and playlists.
-
-More detail:
-
-- [`Search Overview`](/openmusic/search/search-overview)
-
-## Resources
-
-### Song
-
-Songs are the core required resource type.
-They contain the main metadata, file information, and links to related albums,
-artists, and optionally lyrics.
-
-More detail:
-
-- [`Songs`](/openmusic/songs/get-a-song)
-
-### Album
-
-Albums group songs into a release.
-They usually expose shared metadata such as name, artwork, UPC, genres, release
-date, and relationships to tracks and artists.
-
-- [`Albums`](/openmusic/albums/get-an-album)
-
-### Artist
-
-Artists represent performers or creators.
-They expose artist metadata and connect outward to songs and albums.
-
-- [`Artists`](/openmusic/artists/get-an-artist)
-
-### Playlist
-
-Playlists are curated track collections.
-They behave like named lists of songs with artwork, curator information, and
-track relationships.
-
-- [`Playlists`](/openmusic/playlists/get-a-playlist)
-
-### Station
-
-Stations are dynamic playlists generated from a seed.
-In the current spec, a station can be based on an artist, a genre, or popular
-tracks.
-
-Unlike a normal playlist, the station is defined by how it is generated rather
-than by a fixed curated track list.
-
-- [`Stations`](/openmusic/stations/get-an-artist-station)
-
-## Response Envelopes
-
-The common wrappers used throughout the spec are:
-
-- single resource response
-- list resource response
-- error response
-
-See [`Responses`](/openmusic/responses) for the shared envelope types.
-
-## Minimal Song Response Example
-
-```json lineNumbers
+```json
 {
-  "data": {
-    "id": "1866862252",
-    "type": "songs",
-    "attributes": {
-      "name": "TEST ME",
-      "album_name": "TEST ME - Single",
-      "artist_name": "Chanmina",
-      "isrc": "JPU902504960",
-      "artwork_url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/5e/6e/3b/5e6e3bb0-91ae-1443-1195-96b8b74b9985/4547366799163.jpg/{w}x{h}bb.jpg",
-      "track_number": 1,
-      "disc_number": 1,
-      "genres": ["J-Pop"],
-      "release_date": "2026-01-14"
-    },
-    "meta": {
-      "omm_id": "xlfumc0blhg57q4e"
-    },
-    "instance": {
-      "duration_in_ms": 171483,
-      "files": [
-        {
-          "download_url": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a8/68/29/a8682985-dd6d-64cd-8332-82ae106d4189/mzaf_3854554072934137608.plus.aac.p.m4a",
-          "lossless": false,
-          "mime_type": "audio/aac",
-          "codec": "aac",
-          "bitrate": null,
-          "stream_url": null
-        }
-      ],
-      "has_lyrics": false
-    },
-    "relationships": {
-      "albums": [
-        {
-          "id": "1866862251",
-          "type": "albums",
-          "attributes": {
-            "name": "TEST ME - Single",
-            "artist_name": "Chanmina",
-            "upc": "4547366799163",
-            "artwork_url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/5e/6e/3b/5e6e3bb0-91ae-1443-1195-96b8b74b9985/4547366799163.jpg/{w}x{h}bb.jpg",
-            "track_count": 1,
-            "genres": ["J-Pop"],
-            "release_date": "2026-01-14"
-          },
-          "meta": {
-            "omm_id": "cwkq3sa775lbeqyp"
-          }
-        }
-      ],
-      "artists": [
-        {
-          "id": "1104839687",
-          "type": "artists",
-          "attributes": {
-            "name": "Chanmina",
-            "artwork_url": "https://is1-ssl.mzstatic.com/image/thumb/AMCArtistImages211/v4/df/49/d5/df49d5f0-b831-ed8a-4f83-4624f1414c83/ami-identity-873b66ee3717cf382744b7a515a63526-2025-05-02T02-36-59.227Z_cropped.png/{w}x{h}bb.jpg",
-            "genres": ["Hip-Hop/Rap"]
-          },
-          "meta": {
-            "omm_id": "uk3rpk7jmikxd4w3"
-          }
-        }
-      ]
-    }
+  "id": "song_123",
+  "type": "song",
+  "attributes": {
+    "name": "Example Song"
   }
 }
 ```
+
+## First Request
+
+Clients should request `GET /` first. The info response contains branding, the OpenMusic version, available capabilities, and supported authentication methods.
+
+Capabilities currently include:
+
+| Capability | Meaning |
+| --- | --- |
+| `streaming` | The server can stream files through `/file/{id}/stream`. |
+| `stations` | The server supports station endpoints. |
+| `explore` | The server supports the explore endpoint. |
+
+## Query Conventions
+
+`lang` is a BCP 47 language tag, for example `en-US`, `de-CH`, or `ja-JP`. Servers may ignore localization. When localized data is available, the requested language should be used where possible.
+
+`include` embeds relationships in a response. Include paths use relationship names:
+
+```http
+GET /song/song_123?include=albums,artists
+GET /song/song_123?include=albums,albums.tracks
+```
+
+Nested includes may be up to three levels deep from the root resource.
+
+Fields are always scoped by resource type:
+
+```http
+GET /song/song_123?fields[song]=name,artworkUrl
+```
+
+Included relationships can be limited and sorted with singular `resource:relationship` syntax:
+
+```http
+GET /song/song_123?include=albums,albums.tracks&limit[album:tracks]=10&sort[album:tracks]=name
+```
+
+Root list, relationship, search, and explore endpoints support `limit`. The usual maximum is 100. Search uses one `limit` for all requested groups, except `top`, which always returns at most 10 resources. Search suggestions always return at most 10 suggestions.
+
+Root list and relationship endpoints support `offset` and `sort`. Sorting supports `name`, `dateAdded`, and minus-prefixed descending variants. Song and album result sets also support `releaseDate`.
+
+## Files
+
+Music files are described by `MusicFile`. A file may expose direct `streamUrl` and `downloadUrl` values. If those are omitted, clients can use the default routes:
+
+```http
+GET /file/{id}/stream
+GET /file/{id}/download
+```
+
+Streaming implementations should support `Range` requests and return `206 Partial Content` for partial responses. If streaming is not supported, `/file/{id}/stream` returns `501`.

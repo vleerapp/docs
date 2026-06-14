@@ -1,0 +1,54 @@
+---
+title: Stations
+description: Fetch stations and station tracks.
+icon: pixelarticons:book-open
+---
+
+Stations are generated track collections. A station is defined by its `seed`, such as a resource, a genre, popular music, or a custom server-defined source.
+
+Servers may internally track which songs were already returned for a station to avoid duplicates. That state can expire. Clients should not store station ids permanently.
+
+Stations are optional. Check the `stations` capability from `GET /` before using these endpoints.
+
+## Resource Stations
+
+Use `/stations/{type}/{id}` to get a generated station seeded by a resource type and an id of that type.
+
+```http
+GET /stations/artist/artist_123
+GET /stations/album/album_123
+GET /stations/song/song_123
+```
+
+The response is `Single<Station>`.
+
+## Genre and Popular Stations
+
+```http
+GET /stations/genres/jazz
+GET /stations/popular
+```
+
+## Fetch a Station by Id
+
+```http
+GET /station/station_123
+```
+
+Use this when a station object already gave the client a station id.
+
+## Tracks
+
+```http
+GET /station/station_123/tracks
+```
+
+The response is `List<Song>` and supports `fields[song]`, `limit`, `offset`, and `sort`.
+
+## Include Tracks
+
+Station responses can include tracks.
+
+```http
+GET /station/station_123?include=tracks&fields[station]=name,description&fields[song]=name,artistName
+```

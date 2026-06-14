@@ -1,0 +1,62 @@
+---
+title: Authentication
+description: Discover and use supported authentication methods.
+icon: pixelarticons:lock
+---
+
+Authentication is advertised by the info response.
+
+```json
+{
+  "authentication": {
+    "methods": [
+      { "type": "none" },
+      { "type": "bearer", "createTokenUrl": "https://example.com/tokens" },
+      {
+        "type": "api_key",
+        "in": "header",
+        "name": "X-API-Key",
+        "createApiKeyUrl": "https://example.com/api-keys"
+      }
+    ]
+  }
+}
+```
+
+If `authentication.methods` is missing, clients should not assume that a token or key creation flow exists.
+
+## Methods
+
+`none` means requests can be made without credentials.
+
+`bearer` means clients send an access token in the `Authorization` header.
+
+```http
+Authorization: Bearer token
+```
+
+`api_key` means clients send a key either in a header or query parameter. The `name` field tells clients which header or query parameter to use.
+
+`oauth2` provides an authorization URL and token URL. OAuth2 is optional for clients. Servers that support OAuth2 should also expose another method when possible.
+
+## Model
+
+```ts
+type AuthenticationMethod =
+  | { type: "none" }
+  | {
+      type: "bearer";
+      createTokenUrl?: string;
+    }
+  | {
+      type: "api_key";
+      in: "header" | "query";
+      name: string;
+      createApiKeyUrl?: string;
+    }
+  | {
+      type: "oauth2";
+      authorizationUrl: string;
+      tokenUrl: string;
+    };
+```

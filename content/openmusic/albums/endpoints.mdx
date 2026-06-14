@@ -1,0 +1,14 @@
+---
+title: Endpoints
+description: Album endpoint reference.
+icon: pixelarticons:code
+full: true
+---
+
+<APIPage document={"./public/openmusic.yml"} operations={[
+  {"path":"/albums","method":"get"},
+  {"path":"/albums/lookup","method":"get"},
+  {"path":"/album/{id}","method":"get"},
+  {"path":"/album/{id}/rel/tracks","method":"get"},
+  {"path":"/album/{id}/rel/artists","method":"get"}
+]} />

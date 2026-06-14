@@ -1,97 +1,68 @@
 ---
 title: Song Models
-description: The song resource types used across the OpenMusic API.
+description: Song resource and music file shapes.
 icon: pixelarticons:menu-square
 ---
 
-## BaseSong
-
-Minimal song resource shape used for `view=minimal` and nested relationships.
-
-```ts
-interface BaseSong extends ResourceBase {
-  type: "songs";
-  meta: {
-    omm_id: string | null;
-  };
-  instance: {
-    duration_in_ms: number;
-    files: File[];
-    has_lyrics: boolean;
-  };
-  relationships?: {
-    albums?: (Album | BaseAlbum)[];
-    artists?: (Artist | BaseArtist)[];
-    lyrics?: Lyrics;
-  };
-}
-```
-
-- [`ResourceBase`](/openmusic/resources#resourcebase)
-- [`File`](#file)
-- [`Albums`](/openmusic/albums/get-an-album)
-- [`Artists`](/openmusic/artists/get-an-artist)
-
 ## Song
 
-Full song resource returned when attributes are requested; extends `BaseSong`.
-
 ```ts
-interface Song extends BaseSong {
-  attributes: SongAttributes;
+interface Song extends Resource {
+  type: "song";
+  attributes: {
+    name: string;
+    files: {
+      preferred: MusicFile;
+      alternatives?: MusicFile[];
+    };
+    albumName?: string;
+    artistName?: string;
+    isrc?: string;
+    artworkUrl?: string;
+    trackNumber?: number;
+    discNumber?: number;
+    genres?: string[];
+    releaseDate?: string;
+    durationMs?: number;
+    lyrics?: Lyrics;
+  };
+  relationships?: {
+    albums?: List<Album>;
+    artists?: List<Artist>;
+  };
 }
 ```
 
-- [`BaseSong`](#basesong)
-- [`SongAttributes`](#songattributes)
+`albumName` and `artistName` are display fallbacks. Prefer relationships when the client needs structured album or artist data.
 
-## File
-
-Represents one playable/downloadable media file variant for a song.
+## MusicFile
 
 ```ts
-interface File {
-  download_url: string;
+interface MusicFile {
+  id: string;
   lossless: boolean;
-  mime_type: string;
-  codec: string | null;
-  bitrate: number | null;
-  stream_url: string | null;
+  mimeType: string;
+  sizeBytes: number;
+  durationMs: number;
+  streamUrl?: string;
+  downloadUrl?: string;
+  codec?: string;
+  bitrateKbps?: number;
+  sampleRateHz?: number;
+  channels?: number;
 }
 ```
 
-`download_url` is required. `stream_url` may be `null` if the server does not support streaming.
-
-## SongAttributes
-
-Full metadata fields attached to `Song`.
-
-`artist_name` and `album_name` are fallback display fields for cases where
-artist/album relationships are unavailable.
-They should also be populated by implementations that do expose those
-relationships, whenever the values are available.
-
-```ts
-interface SongAttributes {
-  name: string;
-  album_name: string | null;
-  artist_name: string | null;
-  isrc: string | null;
-  artwork_url: string | null;
-  track_number: number | null;
-  disc_number: number | null;
-  genres: string[];
-  release_date: string | null;
-}
-```
+If `streamUrl` or `downloadUrl` is missing, clients can use the default file endpoints.
 
 ## Lyrics
 
-Lyrics payload returned when lyrics are included or fetched directly.
+Lyrics are part of song attributes and are controlled by `lang` when localization is available.
 
 ```ts
 interface Lyrics {
+  lang: string;
   text: string;
-  language: string | null;
+  ttml?: string;
 }
 ```

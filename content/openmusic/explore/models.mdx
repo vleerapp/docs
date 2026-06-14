@@ -1,0 +1,27 @@
+---
+title: Explore Models
+description: Explore section shape.
+icon: pixelarticons:menu-square
+---
+
+## Explore
+
+```ts
+type Explore = (
+  | Section<Song>
+  | Section<Album>
+  | Section<Artist>
+  | Section<Playlist>
+  | Section<Station>
+)[];
+```
+
+## Section
+
+```ts
+interface Section<T extends Resource> {
+  title: string;
+  type: T["type"];
+  data: T[];
+}
+```

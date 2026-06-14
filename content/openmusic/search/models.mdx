@@ -1,28 +1,29 @@
 ---
 title: Search Models
-description: Shared models used by search endpoints.
+description: Search result shapes.
 icon: pixelarticons:menu-square
 ---
 
-## SearchScope
-
-Supported resource scopes in bucketed search.
+## Search
 
 ```ts
-type SearchScope =
-  | "top"
-  | "songs"
-  | "albums"
-  | "artists"
-  | "playlists"
-  | "stations";
+interface Search {
+  songs: List<Song>;
+  albums: List<Album>;
+  artists: List<Artist>;
+  playlists: List<Playlist>;
+  top: List<Song | Album | Artist | Playlist>;
+}
 ```
 
-## Typed Search Models
+## Typed Search
 
-Typed search endpoints return paginated resources from these model groups:
+```ts
+type SearchType = List<Song> | List<Album> | List<Artist> | List<Playlist>;
+```
 
-- [`Song`](/openmusic/songs/models#song)
-- [`Album`](/openmusic/albums/models#album)
-- [`Artist`](/openmusic/artists/models#artist)
-- [`Playlist`](/openmusic/playlists/models#playlist)
+## Search Suggestions
+
+```ts
+type SearchSuggestions = string[];
+```

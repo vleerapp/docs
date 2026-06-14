@@ -1,14 +1,9 @@
 {
   "title": "Search",
-  "icon": "pixelarticons:bulletlist-sharp",
+  "icon": "pixelarticons:search",
   "pages": [
-    "search-overview",
-    "search-songs",
-    "search-albums",
-    "search-artists",
-    "search-playlists",
-    "---Objects---",
-    "models",
-    "responses"
+    "guide",
+    "endpoints",
+    "models"
   ]
 }

@@ -1,45 +1,76 @@
 ---
 title: Responses
-description: Common Body Responses.
+description: Shared OpenMusic response shapes.
 icon: pixelarticons:menu-square
 ---
 
-## SingleResourceResponse
-
-Wrapper used when an endpoint returns one resource in `data`.
+Single resources use a response object with `data`.
 
 ```ts
-interface SingleResourceResponse<T> {
+interface Single<T extends Resource> {
   data: T;
 }
 ```
 
-## ListResourceResponse
+Example:
 
-Wrapper used when an endpoint returns a list in `data`.
+```json
+{
+  "data": {
+    "id": "artist_123",
+    "type": "artist",
+    "attributes": {
+      "name": "Example Artist"
+    }
+  }
+}
+```
+
+Lists and collections use `data` and `meta`.
+
+## List
 
 ```ts
-interface ListResourceResponse<T> {
+interface List<T extends Resource> {
   data: T[];
   meta: {
     limit: number;
     offset: number;
-    has_next_page: boolean;
+    total?: number;
   };
 }
 ```
 
-## ErrorResponse
+Use lists for normal list endpoints and relationship endpoints.
 
-Standard error envelope returned by OpenMusic endpoints.
+The usual maximum `limit` is 100.
+
+## Collection
+
+```ts
+interface Collection<T extends Resource> {
+  data: T[];
+  meta: {
+    missingIds: Id[];
+  };
+}
+```
+
+Collections are used by lookup endpoints. Returned resources keep the request order. Missing ids are omitted from `data` and reported in `meta.missingIds`.
+
+## Raw Objects
+
+`GET /`, `GET /search`, `GET /search/suggestions`, and `GET /explore` return their model directly, without a `data` wrapper.
+
+Errors always use the shared error envelope:
 
 ```ts
 interface ErrorResponse {
   error: {
-    code: number;
-    title: string;
+    status: number;
     message: string;
-    trace_id: string | null;
+    details?: ErrorDetail[];
+    requestId?: string;
   };
 }
 ```

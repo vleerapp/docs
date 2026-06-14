@@ -1,0 +1,37 @@
+---
+title: Info
+description: Fetch provider metadata and capabilities.
+icon: pixelarticons:book-open
+---
+
+Use the info endpoint as the first request a client makes.
+
+```http
+GET /
+```
+
+The response is the raw `Info` object, not wrapped in `data`.
+
+```json
+{
+  "branding": {
+    "name": "Example Music",
+    "shortName": "Example",
+    "themeHex": "#111111"
+  },
+  "openmusic": {
+    "version": "1.0",
+    "capabilities": ["streaming", "stations", "explore"]
+  }
+}
+```
+
+## Capabilities
+
+Clients should inspect `openmusic.capabilities` before assuming optional endpoint groups are available.
+
+| Capability | Endpoint group |
+| --- | --- |
+| `streaming` | `/file/{id}/stream` |
+| `stations` | station endpoints |
+| `explore` | `/explore` |

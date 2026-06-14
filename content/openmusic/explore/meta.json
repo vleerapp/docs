@@ -1,6 +1,6 @@
 {
-  "title": "Artists",
-  "icon": "pixelarticons:user",
+  "title": "Explore",
+  "icon": "pixelarticons:map",
   "pages": [
     "guide",
     "endpoints",

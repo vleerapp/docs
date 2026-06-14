@@ -1,0 +1,53 @@
+---
+title: Playlists
+description: Fetch playlists and playlist tracks.
+icon: pixelarticons:book-open
+---
+
+Playlists are curated track collections. They expose a name, optional curator metadata, optional description, artwork, and tracks.
+
+## List Playlists
+
+```http
+GET /playlists?limit=25&offset=0&sort=name
+```
+
+The response is a `List<Playlist>`.
+
+## Look Up Playlists
+
+Playlists can be looked up by id.
+
+```http
+GET /playlists/lookup?id=playlist_1,omm:playlist:playlist_2
+```
+
+Lookup requests should contain at most 100 ids.
+
+## Fetch One Playlist
+
+```http
+GET /playlist/playlist_123
+```
+
+The response is `Single<Playlist>`.
+
+## Include Tracks
+
+```http
+GET /playlist/playlist_123?include=tracks
+```
+
+Use scoped fields to shape the playlist and the included songs:
+
+```http
+GET /playlist/playlist_123?include=tracks&fields[playlist]=name,description&fields[song]=name,durationMs
+```
+
+## Relationship Endpoint
+
+```http
+GET /playlist/playlist_123/rel/tracks
+```
+
+The tracks endpoint returns `List<Song>` and supports `fields[song]`, `limit`, `offset`, and `sort`.
