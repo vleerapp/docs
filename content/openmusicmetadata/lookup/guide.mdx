@@ -10,6 +10,8 @@ Use lookup when you already have OpenMusicMetadata ids, a song ISRC, or an album
 
 Lookup requests support at most 100 values for `ids`, `isrc`, or `upc`.
 
+Returned resources keep the request order. Missing values are omitted from `data`.
+
 ## One Resource
 
 ```http
@@ -24,7 +26,7 @@ The response is `Single<Song | Album | Artist>`.
 GET /lookup?ids=omm:song:1,omm:album:2,omm:artist:3
 ```
 
-The response is a `Collection<Song | Album | Artist>`. Returned resources keep the request order. Missing ids are omitted from `data`.
+The response is a `Collection<Song | Album | Artist>`.
 
 ## Many by ISRC
 
