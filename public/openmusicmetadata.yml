@@ -170,7 +170,7 @@ components:
       name: include
       in: query
       required: false
-      description: Comma-separated relationships to include. Songs support albums and artists. Albums support artists. Artists do not support includes.
+      description: Comma-separated relationships to include. Includes are limited to one relationship level. Songs support albums and artists. Albums support artists.
       schema:
         type: string
       examples:

@@ -46,6 +46,8 @@ The response is `List<Album>`.
 
 ## Includes
 
+Includes are limited to one relationship level.
+
 Songs can include albums and artists:
 
 ```http
@@ -57,8 +59,6 @@ Albums can include artists:
 ```http
 GET /lookup/omm:album:2?include=artists
 ```
-
-Artists do not support includes.
 
 ## Fields
 
