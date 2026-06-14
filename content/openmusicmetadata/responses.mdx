@@ -31,4 +31,4 @@ interface Collection<T extends Resource> {
 
 `/lookup?ids=...` returns a collection because it can contain mixed resource types. `/lookup?isrc=...` returns a song collection. `/lookup?upc=...` returns an album collection.
 
-`/search/{type}` returns a typed list.
+`/match/song` returns one song in `data`.

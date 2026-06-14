@@ -28,8 +28,8 @@ GET /lookup?isrc=USRC17607839
 GET /lookup?upc=602455878540
 ```
 
-Use `/search/{type}` when you need to find canonical metadata by name, album name, or artist name.
+Use `/match/song` when you need to match song metadata to one canonical OpenMusicMetadata song.
 
 ```http
-GET /search/song?name=blue&artist=example
+GET /match/song?name=blue&artist=example
 ```

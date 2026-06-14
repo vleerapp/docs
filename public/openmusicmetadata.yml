@@ -13,7 +13,7 @@ servers:
 tags:
   - name: Metadata
   - name: Lookup
-  - name: Search
+  - name: Match
 
 paths:
   /:
@@ -76,34 +76,29 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  /search/{type}:
+  /match/song:
     get:
-      tags: [Search]
-      summary: Search one metadata resource type
-      operationId: searchType
+      tags: [Match]
+      summary: Match a song
+      operationId: matchSong
+      description: Matches song metadata to one canonical OpenMusicMetadata song.
       parameters:
-        - name: type
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [song, album, artist]
         - name: name
           in: query
           required: false
-          description: Search by resource name.
+          description: Song name.
           schema:
             type: string
         - name: album
           in: query
           required: false
-          description: Search or filter by album name.
+          description: Album name.
           schema:
             type: string
         - name: artist
           in: query
           required: false
-          description: Search or filter by artist name.
+          description: Artist name.
           schema:
             type: string
         - $ref: "#/components/parameters/Include"
@@ -112,11 +107,11 @@ paths:
         - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
-          description: Search results
+          description: Matched song
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SearchTypeResponse"
+                $ref: "#/components/schemas/SongSingle"
         default:
           $ref: "#/components/responses/Error"
 
@@ -366,6 +361,13 @@ components:
             - $ref: "#/components/schemas/Album"
             - $ref: "#/components/schemas/Artist"
 
+    SongSingle:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Song"
+
     SongList:
       type: object
       required: [data, meta]
@@ -410,12 +412,6 @@ components:
               - $ref: "#/components/schemas/Song"
               - $ref: "#/components/schemas/Album"
               - $ref: "#/components/schemas/Artist"
-
-    SearchTypeResponse:
-      oneOf:
-        - $ref: "#/components/schemas/SongList"
-        - $ref: "#/components/schemas/AlbumList"
-        - $ref: "#/components/schemas/ArtistList"
 
     ErrorResponse:
       type: object
