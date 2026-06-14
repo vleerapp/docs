@@ -130,7 +130,7 @@ paths:
       description: Returns matching songs in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
-        - $ref: "#/components/parameters/LookupId"
+        - $ref: "#/components/parameters/LookupIds"
         - $ref: "#/components/parameters/LookupIsrc"
         - $ref: "#/components/parameters/Include"
         - $ref: "#/components/parameters/LimitIncluded"
@@ -250,7 +250,7 @@ paths:
       description: Returns matching albums in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
-        - $ref: "#/components/parameters/LookupId"
+        - $ref: "#/components/parameters/LookupIds"
         - $ref: "#/components/parameters/LookupUpc"
         - $ref: "#/components/parameters/Include"
         - $ref: "#/components/parameters/LimitIncluded"
@@ -370,7 +370,7 @@ paths:
       description: Returns matching artists in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
-        - $ref: "#/components/parameters/LookupId"
+        - $ref: "#/components/parameters/LookupIds"
         - $ref: "#/components/parameters/Include"
         - $ref: "#/components/parameters/LimitIncluded"
         - $ref: "#/components/parameters/SortIncluded"
@@ -488,7 +488,7 @@ paths:
       description: Returns matching playlists in request order. Missing ids are omitted from data. A lookup request should contain at most 100 ids.
       parameters:
         - $ref: "#/components/parameters/Lang"
-        - $ref: "#/components/parameters/LookupId"
+        - $ref: "#/components/parameters/LookupIds"
         - $ref: "#/components/parameters/Include"
         - $ref: "#/components/parameters/LimitIncluded"
         - $ref: "#/components/parameters/SortIncluded"
@@ -992,8 +992,8 @@ components:
         enum: [name, -name, dateAdded, -dateAdded, releaseDate, -releaseDate]
       example: name
 
-    LookupId:
-      name: id
+    LookupIds:
+      name: ids
       in: query
       required: false
       description: Comma-separated ids. The order of returned resources should match the request order. Maximum 100 ids.
