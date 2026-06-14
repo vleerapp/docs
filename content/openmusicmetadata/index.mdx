@@ -1,8 +1,10 @@
 ---
 title: Overview
 description: Canonical metadata for the OpenMusic ecosystem.
-icon: pixelarticons:text-search
+icon: pixelarticons:book-open
 ---
+
+import { Icon } from "@iconify/react";
 
 <Callout title="Attention" type="error">
   This is still in development. It is not final yet, and breaking changes can
@@ -10,6 +12,22 @@ icon: pixelarticons:text-search
 </Callout>
 
 OpenMusicMetadata is a read-only metadata API for canonical songs, albums, and artists. OpenMusic servers can use OpenMusicMetadata ids to map the same musical entity across different catalogs.
+
+<Cards>
+  <Card
+    title="API Specifications"
+    href="/openmusicmetadata/implementation"
+    icon={<Icon icon="pixelarticons:code" />}
+    description="Core conventions used by the OpenMusicMetadata endpoint"
+  />
+  <Card
+    title="Download YAML"
+    href="/openmusicmetadata.yml"
+    download="openmusicmetadata.yml"
+    icon={<Icon icon="pixelarticons:download" />}
+    description="Download the current OpenMusicMetadata OpenAPI document"
+  />
+</Cards>
 
 ## Resource Types
 
