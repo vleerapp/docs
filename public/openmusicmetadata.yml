@@ -306,7 +306,7 @@ components:
               const: album
             attributes:
               type: object
-              required: [name]
+              required: [name, trackCount]
               properties:
                 name:
                   type: string
