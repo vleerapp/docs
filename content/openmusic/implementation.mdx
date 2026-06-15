@@ -4,8 +4,6 @@ description: Core conventions used by OpenMusic implementations.
 icon: pixelarticons:code
 ---
 
-All OpenMusic endpoints are served below the API base URL, for example `https://api.example.com/api`.
-
 The specification uses a small set of resource types:
 
 - `song`
@@ -16,27 +14,17 @@ The specification uses a small set of resource types:
 
 Each resource has an `id`, a singular `type`, an `attributes` object, and optional `relationships`.
 
-```json
-{
-  "id": "song_123",
-  "type": "song",
-  "attributes": {
-    "name": "Example Song"
-  }
-}
-```
-
 ## First Request
 
 Clients should request `GET /` first. The info response contains branding, the OpenMusic version, available capabilities, and supported authentication methods.
 
 Capabilities currently include:
 
-| Capability | Meaning |
-| --- | --- |
+| Capability  | Meaning                                                  |
+| ----------- | -------------------------------------------------------- |
 | `streaming` | The server can stream files through `/file/{id}/stream`. |
-| `stations` | The server supports station endpoints. |
-| `explore` | The server supports the explore endpoint. |
+| `stations`  | The server supports station endpoints.                   |
+| `explore`   | The server supports the explore endpoint.                |
 
 ## Query Conventions
 
