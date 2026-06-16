@@ -59,11 +59,3 @@ Albums can include artists:
 ```http
 GET /lookup/omm:album:2?include=artists
 ```
-
-## Fields
-
-Use scoped fields to keep responses small.
-
-```http
-GET /lookup/omm:song:1?fields[song]=name,isrc&fields[artist]=name
-```

@@ -42,9 +42,6 @@ paths:
         - $ref: "#/components/parameters/LookupIsrc"
         - $ref: "#/components/parameters/LookupUpc"
         - $ref: "#/components/parameters/Include"
-        - $ref: "#/components/parameters/FieldsSong"
-        - $ref: "#/components/parameters/FieldsAlbum"
-        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
           description: Resource list
@@ -63,9 +60,6 @@ paths:
       parameters:
         - $ref: "#/components/parameters/ResourceId"
         - $ref: "#/components/parameters/Include"
-        - $ref: "#/components/parameters/FieldsSong"
-        - $ref: "#/components/parameters/FieldsAlbum"
-        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
           description: Resource
@@ -108,9 +102,6 @@ paths:
           schema:
             type: string
         - $ref: "#/components/parameters/Include"
-        - $ref: "#/components/parameters/FieldsSong"
-        - $ref: "#/components/parameters/FieldsAlbum"
-        - $ref: "#/components/parameters/FieldsArtist"
       responses:
         "200":
           description: Matched resource
@@ -178,33 +169,6 @@ components:
           value: albums,artists
         album:
           value: artists
-
-    FieldsSong:
-      name: fields[song]
-      in: query
-      required: false
-      description: Comma-separated song fields.
-      schema:
-        type: string
-      example: name,artworkUrl,isrc
-
-    FieldsAlbum:
-      name: fields[album]
-      in: query
-      required: false
-      description: Comma-separated album fields.
-      schema:
-        type: string
-      example: name,artworkUrl,upc
-
-    FieldsArtist:
-      name: fields[artist]
-      in: query
-      required: false
-      description: Comma-separated artist fields.
-      schema:
-        type: string
-      example: name,artworkUrl
 
   schemas:
     Info:
