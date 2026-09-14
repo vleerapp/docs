@@ -11,14 +11,8 @@ interface ErrorResponse {
   error: {
     status: number;
     message: string;
-    details?: ErrorDetail[];
-    requestId?: string;
   };
 }
-
-interface ErrorDetail {
-  message: string;
-  param?: string;
-  value?: unknown;
-}
 ```
+
+Rate limited requests return `429` with a plain text body and a `retry-after` header.

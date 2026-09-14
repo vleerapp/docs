@@ -2,7 +2,10 @@ openapi: 3.1.0
 info:
   title: OpenMusicMetadata API
   version: 1.0.0
-  description: Canonical metadata for OpenMusic songs, albums, and artists.
+  description: |
+    Canonical metadata for OpenMusic songs, albums, and artists.
+
+    Requests are rate limited per client IP with a burst of 20 requests, refilling one request every 50 ms.
   license:
     name: AGPL-3.0
 
@@ -12,8 +15,8 @@ servers:
 
 tags:
   - name: Info
-  - name: Lookup
-  - name: Match
+  - name: Catalog
+  - name: Identify
 
 paths:
   /:
@@ -21,6 +24,7 @@ paths:
       tags: [Info]
       summary: Get info
       operationId: getInfo
+      description: Returns estimated resource counts.
       responses:
         "200":
           description: Info
@@ -28,19 +32,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Info"
-        default:
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
           $ref: "#/components/responses/Error"
 
-  /lookup:
+  /catalog:
     get:
-      tags: [Lookup]
-      summary: Look up metadata resources
-      operationId: lookupResources
-      description: Returns matching resources. Use exactly one of ids, isrc, or upc. ids returns resources in request order and omits missing ids from data.
+      tags: [Catalog]
+      summary: Get catalog resources
+      operationId: getCatalogResources
+      description: |
+        Returns matching resources. Use exactly one of ids, isrc, or upc.
+
+        - ids returns resources in request order. Invalid and missing ids are omitted from data.
+        - isrc and upc return resources ordered by id. Unknown values are omitted from data.
       parameters:
-        - $ref: "#/components/parameters/LookupIds"
-        - $ref: "#/components/parameters/LookupIsrc"
-        - $ref: "#/components/parameters/LookupUpc"
+        - $ref: "#/components/parameters/CatalogIds"
+        - $ref: "#/components/parameters/CatalogIsrc"
+        - $ref: "#/components/parameters/CatalogUpc"
         - $ref: "#/components/parameters/Include"
       responses:
         "200":
@@ -49,14 +59,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceList"
-        default:
+        "400":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
           $ref: "#/components/responses/Error"
 
-  /lookup/{id}:
+  /catalog/{id}:
     get:
-      tags: [Lookup]
-      summary: Look up one metadata resource
-      operationId: lookupResource
+      tags: [Catalog]
+      summary: Get one catalog resource
+      operationId: getCatalogResource
       parameters:
         - $ref: "#/components/parameters/ResourceId"
         - $ref: "#/components/parameters/Include"
@@ -67,49 +81,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceSingle"
-        default:
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
           $ref: "#/components/responses/Error"
 
-  /match/{type}:
+  /identify/{type}:
     get:
-      tags: [Match]
-      summary: Match one metadata resource
-      operationId: matchResource
-      description: Matches provided metadata to one canonical OpenMusicMetadata resource. Songs can use name, artist, and album. Albums can use name and artist. Artists use name.
+      tags: [Identify]
+      summary: Identify one metadata resource
+      operationId: identifyResource
+      description: Identifies the canonical canonical OpenMusicMetadata resource. Songs use name, artist, and album. Albums use name and artist. Artists use name. Parameters not used by the type are ignored.
       parameters:
         - name: type
           in: path
           required: true
           schema:
-            type: string
-            enum: [song, album, artist]
+            $ref: "#/components/schemas/ResourceType"
         - name: name
           in: query
           required: true
           description: Resource name.
           schema:
             type: string
+            minLength: 1
+            maxLength: 256
         - name: album
           in: query
           required: false
-          description: Album name. Used for song matching.
+          description: Album name. Used to identify songs.
           schema:
             type: string
+            maxLength: 256
         - name: artist
           in: query
           required: false
-          description: Artist name. Used for song and album matching.
+          description: Artist name. Used to identify songs and albums.
           schema:
             type: string
+            maxLength: 256
         - $ref: "#/components/parameters/Include"
       responses:
         "200":
-          description: Matched resource
+          description: Identified resource
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceSingle"
-        default:
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
           $ref: "#/components/responses/Error"
 
 components:
@@ -121,6 +150,23 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
 
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        retry-after:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+        x-ratelimit-after:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Too Many Requests! Wait for 1s
+
   parameters:
     ResourceId:
       name: id
@@ -130,38 +176,41 @@ components:
       schema:
         $ref: "#/components/schemas/Id"
 
-    LookupIds:
+    CatalogIds:
       name: ids
       in: query
       required: false
-      description: Comma-separated OpenMusicMetadata ids. Maximum 100 lookup values. Cannot be combined with isrc or upc.
+      description: Comma-separated OpenMusicMetadata ids. Maximum 100 values and 10000 characters. Cannot be combined with isrc or upc.
       schema:
         type: string
-      example: omm:song:1,omm:album:2,omm:artist:3
+        maxLength: 10000
+      example: omm:song:0a1b2c3d4e5f6g7h,omm:album:1a2b3c4d5e6f7g8h
 
-    LookupIsrc:
+    CatalogIsrc:
       name: isrc
       in: query
       required: false
-      description: Song ISRC values. Maximum 100 lookup values. Cannot be combined with ids or upc.
+      description: Comma-separated song ISRC values, matched case-insensitively. Maximum 100 values and 10000 characters. Cannot be combined with ids or upc.
       schema:
         type: string
+        maxLength: 10000
       example: USRC17607839
 
-    LookupUpc:
+    CatalogUpc:
       name: upc
       in: query
       required: false
-      description: Album UPC values. Maximum 100 lookup values. Cannot be combined with ids or isrc.
+      description: Comma-separated album UPC values. Maximum 100 values and 10000 characters. Cannot be combined with ids or isrc.
       schema:
         type: string
+        maxLength: 10000
       example: "602455878540"
 
     Include:
       name: include
       in: query
       required: false
-      description: Comma-separated relationships to include. Includes are limited to one relationship level. Songs support albums and artists. Albums support artists.
+      description: Comma-separated relationships to include. Includes are limited to one relationship level. Songs support albums and artists. Albums support artists. Artists support none. Unsupported values are ignored.
       schema:
         type: string
       examples:
@@ -177,6 +226,7 @@ components:
       properties:
         stats:
           type: object
+          description: Estimated resource counts.
           required: [songs, albums, artists]
           properties:
             songs:
@@ -195,142 +245,152 @@ components:
 
     Id:
       type: string
-      description: OpenMusicMetadata id.
+      description: OpenMusicMetadata id in the form omm:TYPE:ID, where ID is 16 lowercase alphanumeric characters.
+      pattern: "^omm:(song|album|artist):[0-9a-z]{16}$"
       examples:
-        - omm:song:1
-        - omm:album:2
-        - omm:artist:3
-
-    Resource:
-      type: object
-      required: [id, type]
-      properties:
-        id:
-          $ref: "#/components/schemas/Id"
-        type:
-          $ref: "#/components/schemas/ResourceType"
+        - omm:song:0a1b2c3d4e5f6g7h
+        - omm:album:1a2b3c4d5e6f7g8h
+        - omm:artist:2a3b4c5d6e7f8g9h
 
     ArtworkUrl:
       type: string
       description: Artwork URL. It may contain {w} and {h} placeholders for client-selected width and height.
 
+    ReleaseDate:
+      type: string
+      description: Date string in YYYY, YYYY-MM, or YYYY-MM-DD form.
+
+    Genres:
+      type: array
+      minItems: 1
+      items:
+        type: string
+
     Song:
-      allOf:
-        - $ref: "#/components/schemas/Resource"
-        - type: object
-          required: [type, attributes]
+      type: object
+      required: [id, type, attributes]
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          const: song
+        attributes:
+          type: object
+          required: [name]
           properties:
-            type:
-              const: song
-            attributes:
-              type: object
-              required: [name]
-              properties:
-                name:
-                  type: string
-                albumName:
-                  type: string
-                artistName:
-                  type: string
-                isrc:
-                  type: string
-                artworkUrl:
-                  $ref: "#/components/schemas/ArtworkUrl"
-                trackNumber:
-                  type: integer
-                  minimum: 1
-                discNumber:
-                  type: integer
-                  minimum: 1
-                genres:
-                  type: array
-                  items:
-                    type: string
-                releaseDate:
-                  type: string
-                  description: Date string in YYYY, YYYY-MM, or YYYY-MM-DD form.
-                durationMs:
-                  type: integer
-                  minimum: 0
-            relationships:
-              type: object
-              properties:
-                albums:
-                  $ref: "#/components/schemas/AlbumList"
-                artists:
-                  $ref: "#/components/schemas/ArtistList"
+            name:
+              type: string
+            albumName:
+              type: string
+              description: Name of the first album.
+            artistName:
+              type: string
+              description: Artist names joined with ", ".
+            isrc:
+              type: string
+            artworkUrl:
+              $ref: "#/components/schemas/ArtworkUrl"
+            trackNumber:
+              type: integer
+              minimum: 1
+            discNumber:
+              type: integer
+              minimum: 1
+            genres:
+              $ref: "#/components/schemas/Genres"
+            releaseDate:
+              $ref: "#/components/schemas/ReleaseDate"
+            durationMs:
+              type: integer
+              minimum: 1
+        relationships:
+          type: object
+          description: Present only when at least one supported relationship is included.
+          properties:
+            albums:
+              $ref: "#/components/schemas/AlbumList"
+            artists:
+              $ref: "#/components/schemas/ArtistList"
 
     Album:
-      allOf:
-        - $ref: "#/components/schemas/Resource"
-        - type: object
-          required: [type, attributes]
+      type: object
+      required: [id, type, attributes]
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          const: album
+        attributes:
+          type: object
+          required: [name, trackCount]
           properties:
-            type:
-              const: album
-            attributes:
-              type: object
-              required: [name, trackCount]
-              properties:
-                name:
-                  type: string
-                trackCount:
-                  type: integer
-                  minimum: 0
-                artistName:
-                  type: string
-                artworkUrl:
-                  $ref: "#/components/schemas/ArtworkUrl"
-                upc:
-                  type: string
-                genres:
-                  type: array
-                  items:
-                    type: string
-                releaseDate:
-                  type: string
-                  description: Date string in YYYY, YYYY-MM, or YYYY-MM-DD form.
-            relationships:
-              type: object
-              properties:
-                artists:
-                  $ref: "#/components/schemas/ArtistList"
+            name:
+              type: string
+            trackCount:
+              type: integer
+              minimum: 0
+            artistName:
+              type: string
+              description: Artist names joined with ", ".
+            artworkUrl:
+              $ref: "#/components/schemas/ArtworkUrl"
+            upc:
+              type: string
+            genres:
+              $ref: "#/components/schemas/Genres"
+            releaseDate:
+              $ref: "#/components/schemas/ReleaseDate"
+        relationships:
+          type: object
+          description: Present only when artists is included. Albums nested in a song never have relationships.
+          properties:
+            artists:
+              $ref: "#/components/schemas/ArtistList"
 
     Artist:
-      allOf:
-        - $ref: "#/components/schemas/Resource"
-        - type: object
-          required: [type, attributes]
+      type: object
+      required: [id, type, attributes]
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          const: artist
+        attributes:
+          type: object
+          required: [name]
           properties:
-            type:
-              const: artist
-            attributes:
-              type: object
-              required: [name]
-              properties:
-                name:
-                  type: string
-                artworkUrl:
-                  $ref: "#/components/schemas/ArtworkUrl"
+            name:
+              type: string
+            artworkUrl:
+              $ref: "#/components/schemas/ArtworkUrl"
+
+    Resource:
+      oneOf:
+        - $ref: "#/components/schemas/Song"
+        - $ref: "#/components/schemas/Album"
+        - $ref: "#/components/schemas/Artist"
+      discriminator:
+        propertyName: type
+        mapping:
+          song: "#/components/schemas/Song"
+          album: "#/components/schemas/Album"
+          artist: "#/components/schemas/Artist"
 
     ResourceSingle:
       type: object
       required: [data]
       properties:
         data:
-          oneOf:
-            - $ref: "#/components/schemas/Song"
-            - $ref: "#/components/schemas/Album"
-            - $ref: "#/components/schemas/Artist"
+          $ref: "#/components/schemas/Resource"
 
-    SongList:
+    ResourceList:
       type: object
       required: [data]
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/Song"
+            $ref: "#/components/schemas/Resource"
 
     AlbumList:
       type: object
@@ -350,18 +410,6 @@ components:
           items:
             $ref: "#/components/schemas/Artist"
 
-    ResourceList:
-      type: object
-      required: [data]
-      properties:
-        data:
-          type: array
-          items:
-            oneOf:
-              - $ref: "#/components/schemas/Song"
-              - $ref: "#/components/schemas/Album"
-              - $ref: "#/components/schemas/Artist"
-
     ErrorResponse:
       type: object
       required: [error]
@@ -372,23 +420,11 @@ components:
           properties:
             status:
               type: integer
-              minimum: 100
+              minimum: 400
               maximum: 599
             message:
               type: string
-            details:
-              type: array
-              items:
-                $ref: "#/components/schemas/ErrorDetail"
-            requestId:
-              type: string
-
-    ErrorDetail:
-      type: object
-      required: [message]
-      properties:
-        message:
-          type: string
-        param:
-          type: string
-        value: {}
+      example:
+        error:
+          status: 400
+          message: Provide exactly one of ids, isrc, or upc

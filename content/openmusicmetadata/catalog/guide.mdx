@@ -1,0 +1,61 @@
+---
+title: Catalog
+description: Fetch resources by id, ISRC, or UPC.
+icon: pixelarticons:book-open
+---
+
+Use the catalog when you already have OpenMusicMetadata ids, a song ISRC, or an album UPC.
+
+`ids`, `isrc`, and `upc` are separate modes and cannot be combined in the same request.
+
+Requests support at most 100 comma-separated values for `ids`, `isrc`, or `upc`.
+
+`ids` keeps the request order. `isrc` and `upc` results are ordered by id. Invalid or missing values are omitted from `data`.
+
+## One Resource
+
+```http
+GET /catalog/omm:song:0a1b2c3d4e5f6g7h
+```
+
+The response is `Single<Song | Album | Artist>`.
+
+## Many by Id
+
+```http
+GET /catalog?ids=omm:song:0a1b2c3d4e5f6g7h,omm:album:1a2b3c4d5e6f7g8h,omm:artist:2a3b4c5d6e7f8g9h
+```
+
+The response is `List<Song | Album | Artist>`.
+
+## Many by ISRC
+
+```http
+GET /catalog?isrc=USRC17607839
+```
+
+The response is `List<Song>`.
+
+## Many by UPC
+
+```http
+GET /catalog?upc=602455878540
+```
+
+The response is `List<Album>`.
+
+## Includes
+
+Includes are limited to one relationship level.
+
+Songs can include albums and artists:
+
+```http
+GET /catalog/omm:song:0a1b2c3d4e5f6g7h?include=albums,artists
+```
+
+Albums can include artists:
+
+```http
+GET /catalog/omm:album:1a2b3c4d5e6f7g8h?include=artists
+```

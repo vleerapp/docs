@@ -1,0 +1,33 @@
+---
+title: Identify
+description: Identify the canonical OpenMusicMetadata resource for metadata.
+icon: pixelarticons:book-open
+---
+
+Use identify when you have metadata and need one canonical OpenMusicMetadata resource.
+
+```http
+GET /identify/song?name=blue&artist=example
+GET /identify/album?name=blue&artist=example
+GET /identify/artist?name=example
+```
+
+Song identification can use album name as extra context.
+
+```http
+GET /identify/song?name=blue&album=example&artist=artist
+```
+
+Album identification can use artist name as extra context.
+
+```http
+GET /identify/album?name=example&artist=artist
+```
+
+Artist identification only uses artist name.
+
+```http
+GET /identify/artist?name=artist
+```
+
+The response is `Single<Song | Album | Artist>`. The returned type matches the requested `type`. Returns `404` when nothing is found.
