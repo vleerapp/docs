@@ -14,7 +14,7 @@ interface TreeNode {
 
 function generateSitemap(
   root: TreeNode,
-  baseUrl: string = "https://openmusic.vleer.app"
+  baseUrl: string = "https://docs.vleer.app"
 ): MetadataRoute.Sitemap {
   const sitemap: MetadataRoute.Sitemap = [];
 

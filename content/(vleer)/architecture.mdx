@@ -1,65 +1,75 @@
 ---
 title: Architecture
-description: The architecture and components of the Vleer music player
+description: How the Vleer app is put together
 icon: pixelarticons:git-pull-request
 ---
 
-<img src="/structure.svg" />
+Vleer is a native desktop app written in Rust with a GPU-rendered UI. It plays the music you already own, keeps an index of it in a local database, and uses a few small online services to clean up metadata, find lyrics and stay up to date. No account is required.
 
-Vleer is built on a modular, decentralized architecture that separates concerns into distinct layers. This design allows for flexibility, extensibility, and true user control over their music ecosystem.
+## Components
 
-## Core Components
+### Library
 
-### Client Layer
-**Vleer** is the primary desktop music player client that provides the user interface and playback experience. It communicates with implementations of the OpenMusic API Spec to fetch and stream music.
+Vleer scans the folders in [`library.paths`](/config#library) and keeps watching them for changes. Everything it learns is stored in a SQLite database (`library.db`) in the [data directory](/config#file-location). Your files are never modified.
 
-### API Specification Layer
+Supported formats: FLAC, MP3, OGG Vorbis, Opus, AAC, WAV and more.
 
-#### OpenMusic API Spec
-The OpenMusic API Spec is the backbone of Vleer's architecture. It defines the standardized protocol that any music service must implement to work with Vleer. This enables users to:
-- Use any compatible implementation as their music source
-- Switch between implementations seamlessly
-- Mix and match multiple sources simultaneously
-- Build custom implementations for their specific needs
+Each song is identified by a fingerprint of its audio data, not by its path or tags. Renaming, moving or retagging a file doesn't break favorites, playlists or play history.
 
-#### OpenMusicMetadata API
-The OpenMusicMetadata API provides centralized metadata management for music across all implementations. This allows Vleer to maintain consistent album artwork, artist information, and song details regardless of where the audio comes from.
+### Metadata
 
-### Implementation Layer
-Implementations are services that follow the OpenMusic API Spec. They handle the actual music delivery and can connect to various sources:
+Tags in the wild are messy. After scanning, Vleer asks the [OpenMusicMetadata API](/openmusicmetadata) to [identify](/openmusicmetadata/identify/guide) each song, album and artist. The response is used to:
 
-- **Local Storage** - Your personal music files on disk
-- **Streaming Services** - Wrappers for platforms like YouTube Music, Spotify, etc.
-- **Cloud Storage** - Music stored on cloud providers
-- **Hybrid Implementations** - Combinations of the above sources
+- fix names
+- merge duplicate artists
+- fill in missing years and artwork
+
+Matching is done by ISRC and UPC where tags have them, and by name otherwise. Results are cached locally and the original files stay untouched.
+
+### Playback
+
+Audio is decoded and played locally, with loudness normalization from ReplayGain tags, a 10-band parametric [equalizer](/config#equalizer) and a spectrum visualizer. Playback is exposed to the operating system through the native media controls on Linux, macOS and Windows.
+
+### Lyrics
+
+Vleer reads lyrics embedded in the file first and falls back to synced lyrics from [LRCLIB](https://lrclib.net).
+
+### Integrations
+
+- **Last.fm** scrobbling, after [connecting your account](/config#lastfm)
+- **Discord Rich Presence**, [off by default](/config#discord)
+
+### Updates
+
+Vleer checks the [Vleer API](/api#update-check) for new releases on the stable or nightly channel. Downloads are verified against a [minisign](https://jedisct1.github.io/minisign/) signature before they are installed. On Linux only installs from the install script self-update; AppImage, AUR and Homebrew installs update through their own tooling.
+
+### Telemetry
+
+Opt-in and off by default. When enabled, Vleer sends only its version, the operating system and the number of songs in your library, tied to a random UUID. See [Telemetry](/api#telemetry).
 
 ## Data Flow
 
-1. **User Action** - User interacts with Vleer (search, play, browse)
-2. **API Request** - Vleer sends a request to the configured OpenMusic implementation
-3. **Implementation Processing** - The implementation fetches data from its source(s)
-4. **Metadata Enrichment** - OpenMusicMetadata API provides unified metadata if available
-5. **Response** - Audio stream and metadata returned to Vleer
-6. **Playback** - Vleer handles audio processing, equalization, and playback
+1. **Scan** - Vleer reads tags and audio fingerprints from your folders into `library.db`
+2. **Identify** - new songs, albums and artists are matched against OpenMusicMetadata
+3. **Enrich** - corrected names, merged artists, years and artwork are stored alongside your data
+4. **Browse and play** - the UI reads from the local database, so it stays fast and works offline
+5. **Extras** - lyrics, scrobbles and presence are fetched or sent while a song plays
 
-## Configuration & User Control
+## Services
 
-Vleer's behavior is controlled through a TOML configuration file that stores:
-- Audio preferences (volume, equalization, normalization)
-- Implementation endpoints and credentials
-- Metadata API configuration
-- Local music library paths
-- User preferences (discord RPC, telemetry, etc.)
+| Service                  | Used for                                | Docs                                   |
+| ------------------------ | --------------------------------------- | -------------------------------------- |
+| `api.vleer.app/metadata` | Song, album and artist metadata         | [OpenMusicMetadata](/openmusicmetadata) |
+| `api.vleer.app/update`   | Update checks                           | [Vleer API](/api#update-check)         |
+| `api.vleer.app/download` | Download redirects for the website      | [Vleer API](/api#download)             |
+| `api.vleer.app/telemetry`| Opt-in usage statistics                 | [Vleer API](/api#telemetry)            |
+| LRCLIB                   | Synced lyrics                           |                                        |
+| Last.fm                  | Scrobbling                              |                                        |
 
-See the [Configuration](/config) guide for complete details.
+## Roadmap
 
-## Why This Architecture
+Not final, and none of this is shipped yet:
 
-This layered, decentralized approach provides:
-- **User Freedom** - Choose or build any implementation that suits your needs
-- **Decentralization** - No single point of failure or control
-- **Extensibility** - Add new sources or implementations without modifying Vleer
-- **Privacy** - Keep music and preferences under your control
-- **Interoperability** - Any OpenMusic-compatible service works with Vleer
-
-The architecture puts users back in control of their music listening experience.
+- Navidrome, Subsonic and OpenSubsonic support
+- Soulseek integration
+- Recommendations based on your listening habits

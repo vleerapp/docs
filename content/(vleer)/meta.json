@@ -6,7 +6,10 @@
   "pages": [
     "---Introduction---",
     "index",
+    "installation",
     "config",
-    "architecture"
+    "architecture",
+    "---API---",
+    "api"
   ]
 }

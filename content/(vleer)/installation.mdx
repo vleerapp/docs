@@ -1,0 +1,82 @@
+---
+title: Installation
+description: Install Vleer on Linux, macOS and Windows
+icon: pixelarticons:download
+---
+
+Vleer ships stable releases and nightly builds. Nightly builds get new features first and may be less stable.
+
+## Linux
+
+Install with the shell script:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/vleerapp/vleer/main/scripts/install.sh | sh
+```
+
+Pass `--system` to install to `/usr/local` instead of `~/.local`.
+
+### AppImage
+
+Download the [ARM64](https://api.vleer.app/download/v1?os=linux&arch=aarch64&format=appimage&nightly=true) or [x64](https://api.vleer.app/download/v1?os=linux&arch=x86_64&format=appimage&nightly=true) AppImage.
+
+<Callout title="No self-updates" type="warn">
+  AppImages do not self-update.
+</Callout>
+
+### AUR
+
+```sh
+yay -S vleer-git
+```
+
+### Homebrew
+
+```sh
+brew install vleerapp/vleer/vleer
+brew install vleerapp/vleer/vleer-nightly
+```
+
+The first formula installs stable releases, the second nightly builds.
+
+## macOS
+
+Download the DMG for [Apple silicon](https://api.vleer.app/download/v1?os=macos&arch=aarch64&nightly=true) or [Intel](https://api.vleer.app/download/v1?os=macos&arch=x86_64&nightly=true).
+
+<Callout title="Unsigned app" type="warn">
+  Vleer isn't signed yet. After copying it to Applications, run this in a
+  terminal, otherwise macOS will refuse to open it:
+
+  ```sh
+  xattr -dr com.apple.quarantine /Applications/Vleer.app
+  ```
+</Callout>
+
+### Homebrew
+
+```sh
+brew install --cask vleerapp/vleer/vleer
+brew install --cask vleerapp/vleer/vleer-nightly
+```
+
+## Windows
+
+Download the installer for [ARM64](https://api.vleer.app/download/v1?os=windows&arch=aarch64&nightly=true) or [x64](https://api.vleer.app/download/v1?os=windows&arch=x86_64&nightly=true).
+
+If Microsoft Defender SmartScreen appears, select **More info**, then **Run anyway**.
+
+## Verifying downloads
+
+Releases are signed with [minisign](https://jedisct1.github.io/minisign/). Verification is optional:
+
+```sh
+minisign -Vm <downloaded_file_name> -P RWRh5nLZjKooTcjP0/fbHq6xIgU9c+QhLjaVPg6gqWv1MuNRV1RWgu28
+```
+
+## Updating
+
+On macOS and Windows, Vleer checks for updates on startup and can update itself. On Linux only installs from the shell script self-update; AppImage, AUR and Homebrew installs are updated through their own tooling. You can switch between the stable and nightly channels in [Configuration](/config#updates).
+
+## Download links
+
+Every download link above redirects through the [Vleer API](/api#download), so it always points at the latest release.

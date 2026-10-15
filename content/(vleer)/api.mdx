@@ -1,0 +1,105 @@
+---
+title: Vleer API
+description: Downloads, updates and telemetry at api.vleer.app
+icon: pixelarticons:server
+---
+
+The Vleer API powers the parts of Vleer that need a server. Metadata lives in its own section: see [OpenMusicMetadata](/openmusicmetadata).
+
+```txt
+https://api.vleer.app
+```
+
+| Path                         | Description                              |
+| ---------------------------- | ---------------------------------------- |
+| `/metadata/v1`               | [OpenMusicMetadata](/openmusicmetadata)  |
+| `/download/v1`               | [Download redirect](#download)           |
+| `/update/v1/check`           | [Update check](#update-check)            |
+| `/telemetry/v1`              | [Telemetry](#telemetry)                  |
+
+`GET /` returns `Healthy`.
+
+## Conventions
+
+- Requests are rate limited per client IP, 20 requests per second. Exceeding it returns `429`. Some endpoints have stricter limits, noted below.
+- Request bodies are limited to 64 KiB.
+- Download and update errors use the same JSON shape as [OpenMusicMetadata](/openmusicmetadata/error-response). Rate limit errors (`429`) are plain text, and telemetry responds with a bare status code, except `400` which has a plain text message.
+- CORS is restricted to an allowlist of origins. Use the API from a server or app, not from arbitrary websites.
+
+## Download
+
+Redirects to the latest release asset for an operating system and architecture.
+
+```http
+GET /download/v1?os=linux&arch=x86_64
+```
+
+| Parameter | Description                                                                         |
+| --------- | ----------------------------------------------------------------------------------- |
+| `os`      | `macos`, `windows` or `linux`. Also accepts `mac`, `osx`, `darwin` and `win`        |
+| `arch`    | `aarch64` or `x86_64`. Also accepts `arm64`, `arm`, `x64`, `amd64` and `x86-64`     |
+| `nightly` | `true` for the latest nightly build instead of the latest stable release            |
+
+Responds with `302` and a `Location` header pointing at the file, and `Cache-Control: no-store`. The file is a `.dmg` on macOS, an `.msi` on Windows and an AppImage on Linux.
+
+| Status | When                                                      |
+| ------ | --------------------------------------------------------- |
+| `400`  | Unsupported `os` or `arch`                                |
+| `404`  | No release asset for this OS and architecture             |
+| `502`  | The release listing could not be loaded                   |
+
+## Update Check
+
+Used by Vleer to find new versions.
+
+```http
+GET /update/v1/check
+GET /update/v1/check?nightly=true
+```
+
+```json
+{
+  "version": "0.1.0",
+  "pub_date": "2026-01-01",
+  "notes_url": "https://github.com/vleerapp/vleer/releases/tag/v0.1.0",
+  "platforms": {
+    "linux-x86_64": {
+      "url": "https://vleer-releases.objects.eplg.cloud/release/Vleer-0.1.0-x86_64.tar.gz",
+      "size": 12345678
+    }
+  }
+}
+```
+
+`platforms` has an entry per available build: `macos-aarch64`, `macos-x86_64`, `windows-aarch64`, `windows-x86_64`, `linux-aarch64` and `linux-x86_64`. The aliases `macos`, `windows` and `linux` point at the Apple silicon, x64 and x64 builds. Nightly versions look like `0.1.0-nightly.20260101.1`, and their `notes_url` points at the nightly workflow.
+
+Results are cached for 60 seconds. Returns `404` if there is no release or no assets, and `502` if the release data can't be loaded.
+
+## Telemetry
+
+Opt-in. Vleer only sends this when `privacy.telemetry` is enabled in the [configuration](/config#privacy).
+
+```http
+POST /telemetry/v1
+Content-Type: application/json
+```
+
+```json
+{
+  "user_id": "0b1c1f6e-5a64-4f56-9c3a-2a7f8f0f3c11",
+  "app_version": "0.1.0",
+  "os": "Linux",
+  "song_count": 1234
+}
+```
+
+| Field         | Description                                                                    |
+| ------------- | ------------------------------------------------------------------------------ |
+| `user_id`     | Random UUID generated on first launch                                          |
+| `app_version` | `X.Y.Z`, or `X.Y.Z-nightly.YYYYMMDD.N` for nightly builds                      |
+| `os`          | `Linux`, `macOS` or `Windows`                                                  |
+| `song_count`  | Number of songs in your library, `0` or more                                   |
+
+Returns `200` on success and `400` for an invalid body. A `user_id` can submit at most 10 times per day (`429`) and can't change its `os` (`422`). Submissions are limited to one request per 2 seconds per IP.
+
+The aggregated results are public at [vleer.app/stats](https://vleer.app/stats).

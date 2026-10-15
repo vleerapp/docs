@@ -4,136 +4,190 @@ description: All available configuration options for Vleer
 icon: pixelarticons:sliders
 ---
 
-import { Icon } from "@iconify/react";
-
-Vleer stores all user preferences and settings in a TOML configuration file. This guide covers all available configuration options and their default values.
+Vleer stores its settings in a TOML file. Most options are available in the in-app settings, but you can also edit the file directly.
 
 ## File Location
-
-The configuration file is stored at:
 
 - **Linux**: `~/.config/vleer/config.toml`
 - **macOS**: `~/Library/Application Support/vleer/config.toml`
 - **Windows**: `%APPDATA%\vleer\config.toml`
 
+The library database (`library.db`), the telemetry id and the log file (`vleer.log`) live in the data directory next to it: `~/.local/share/vleer` on Linux, and the same folder as the config on macOS and Windows.
+
 <Callout title="Auto-creation" type="info">
-  If the configuration file doesn't exist when Vleer starts, a new one will be
-  automatically created with default values.
+  If the configuration file doesn't exist when Vleer starts, a new one is
+  created with default values.
 </Callout>
 
 ## Default Config
 
-Here's a complete example of a `config.toml` file with all available options:
-
 ```toml
-version = 1
-telemetry = true
-discord_rpc = false
+version = 2
 
-[equalizer]
+[general]
+tray_icon = false
+close_to_tray = false
+
+[library]
+paths = ["~/Music"]
+
+[appearance]
+visualizer = true
+
+[appearance.spectrum]
+enabled = true
+peak_caps = false
+fft_size = 8192
+
+[playback]
+volume = 0.5
+
+[playback.equalizer]
 enabled = false
 frequencies = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 gains = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 q_values = [1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461]
 
-[scan]
-paths = ["~/Music"]
+[privacy]
+telemetry = false
 
-[audio]
-normalization = true
-volume = 0.5
+[integrations.discord]
+enabled = false
+
+[integrations.lastfm]
+scrobble_threshold = 0.5
+
+[updates]
+auto_check = true
+channel = "stable"
 ```
+
+`library.paths` defaults to your operating system's Music folder. The `integrations.lastfm` section also gets `username` and `session_key` once you connect an account. `updates.channel` defaults to the channel of the build you are running.
 
 ## Sections
 
-### Global Settings
+### Global
 
-| Option        | Type    | Default | Description                                                          |
-| ------------- | ------- | ------- | -------------------------------------------------------------------- |
-| `version`     | integer | `1`     | Configuration file schema version for migration support              |
-| `telemetry`   | boolean | `true`  | Enable or disable telemetry collection                               |
-| `discord_rpc` | boolean | `false` | Enable or disable Discord RPC status showing current song and artist |
+| Option    | Type    | Default | Description                                         |
+| --------- | ------- | ------- | --------------------------------------------------- |
+| `version` | integer | `2`     | Config schema version, used to migrate older files  |
 
-<Callout title="Telemetry Collection" type="info">
-  The telemetry collected consists of the current version, the os and the
-  current total amount of songs in the local db. All of this is associated with
-  a UUID generated upon the first startup of Vleer. This helps us identify the
-  user democraphic and its interresting statistics available for everyone
-  [here](https://graf.wireway.ch/public-dashboards/c518e42c7bc14c5ba95040671fb9e467).
-</Callout>
+### General
 
-### Equalizer Settings
+| Option          | Type    | Default | Description                                      |
+| --------------- | ------- | ------- | ------------------------------------------------ |
+| `tray_icon`     | boolean | `false` | Show a system tray icon with playback controls   |
+| `close_to_tray` | boolean | `false` | Keep playing in the tray when the window is closed |
 
-The equalizer section controls audio frequency adjustments.
+### Library
 
-| Option        | Type              | Default                                                  | Description                                                                   |
-| ------------- | ----------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `enabled`     | boolean           | `false`                                                  | Enable or disable the equalizer                                               |
-| `frequencies` | array of integers | `[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]` | Frequency bands in Hz. Must contain exactly 10 values                         |
-| `gains`       | array of floats   | `[0.0, 0.0, ...]` (10 values)                            | Gain adjustment in dB for each frequency band. Must contain exactly 10 values |
-| `q_values`    | array of floats   | `[1.461, 1.461, ...]` (10 values)                        | Q factor (bandwidth) for each frequency band. Must contain exactly 10 values  |
-
-#### Equalizer Example
+| Option  | Type             | Default             | Description                                   |
+| ------- | ---------------- | ------------------- | --------------------------------------------- |
+| `paths` | array of strings | OS music folder     | Folders Vleer scans and watches for songs     |
 
 ```toml
-[equalizer]
+[library]
+paths = ["~/Music", "~/Downloads/Music", "/mnt/external/Music"]
+```
+
+Empty entries are dropped. Vleer scans these folders on startup and keeps watching them for changes.
+
+### Appearance
+
+| Option       | Type    | Default | Description                                     |
+| ------------ | ------- | ------- | ----------------------------------------------- |
+| `visualizer` | boolean | `true`  | Animate bars next to the current song           |
+
+#### Spectrum
+
+| Option      | Type    | Default | Description                                                              |
+| ----------- | ------- | ------- | ------------------------------------------------------------------------ |
+| `enabled`   | boolean | `true`  | Show live frequency bars in the player                                   |
+| `peak_caps` | boolean | `false` | Keep a marker at the highest point of each bar                           |
+| `fft_size`  | integer | `8192`  | Analysis window. One of `1024`, `2048`, `4096`, `8192`, `16384`          |
+
+Larger `fft_size` values give more detail, smaller ones are faster. Any other value falls back to `8192`.
+
+### Playback
+
+| Option   | Type  | Default | Description                              |
+| -------- | ----- | ------- | ---------------------------------------- |
+| `volume` | float | `0.5`   | Playback volume, clamped to `0.0`–`1.0`  |
+
+Loudness normalization uses the ReplayGain tags in your files.
+
+#### Equalizer
+
+A 10-band parametric equalizer.
+
+| Option        | Type              | Default                                                  | Description                                    |
+| ------------- | ----------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| `enabled`     | boolean           | `false`                                                  | Enable the equalizer                           |
+| `frequencies` | array of integers | `[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]` | Band frequencies in Hz. Exactly 10 values      |
+| `gains`       | array of floats   | `[0.0, ...]` (10 values)                                 | Gain in dB for each band. Exactly 10 values    |
+| `q_values`    | array of floats   | `[1.461, ...]` (10 values)                               | Q factor for each band. Exactly 10 values      |
+
+```toml
+[playback.equalizer]
 enabled = true
 frequencies = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 gains = [2.0, 1.5, 0.5, 0.0, -0.5, 0.0, 1.0, 2.0, 1.5, 0.5]
 q_values = [1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461, 1.461]
 ```
 
-<Callout title="Array Length Requirement" type="warning">
-  The equalizer requires exactly 10 frequency bands with corresponding gain and
-  Q values. If the counts don't match, Vleer will reset these arrays to defaults
-  with a warning.
+<Callout title="Array length" type="warning">
+  Each array needs exactly 10 values. An array with a different length is
+  reset to its default.
 </Callout>
 
-### Scan Settings
+### Privacy
 
-Controls how Vleer discovers and indexes music in your library.
+| Option      | Type    | Default | Description                         |
+| ----------- | ------- | ------- | ----------------------------------- |
+| `telemetry` | boolean | `false` | Share anonymous usage statistics    |
 
-| Option  | Type             | Default       | Description                                 |
-| ------- | ---------------- | ------------- | ------------------------------------------- |
-| `paths` | array of strings | `["~/Music"]` | List of directories to scan for music files |
-
-#### Scan Example
-
-```toml
-[scan]
-paths = ["~/Music", "~/Downloads/Music", "/mnt/external/Music"]
-```
-
-<Callout title="Path Expansion" type="tip">
-  You can specify multiple directories. Paths support tilde (`~`) expansion for
-  the home directory.
+<Callout title="Telemetry" type="info">
+  Telemetry is off until you turn it on. When enabled, Vleer sends the app
+  version, your operating system and the total number of songs in your library,
+  tied to a random UUID generated on first launch. Nothing else is sent. The
+  aggregated numbers are public on [vleer.app/stats](https://vleer.app/stats).
+  See the [Vleer API](/api#telemetry) for the exact payload.
 </Callout>
 
-### Audio Settings
+### Integrations
 
-Controls audio output behavior.
+#### Discord
 
-| Option          | Type    | Default | Description                                            |
-| --------------- | ------- | ------- | ------------------------------------------------------ |
-| `normalization` | boolean | `true`  | Enable loudness normalization (-14 LUFS) across tracks |
-| `volume`        | float   | `0.5`   | Default playback volume (range: 0.0 to 1.0)            |
+| Option    | Type    | Default | Description                                         |
+| --------- | ------- | ------- | --------------------------------------------------- |
+| `enabled` | boolean | `false` | Show the current song and artist as Discord Rich Presence |
 
-## Configuration Validation
+#### Last.fm
 
-Vleer automatically validates your configuration when it loads. If issues are detected:
+| Option               | Type   | Default | Description                                                                 |
+| -------------------- | ------ | ------- | --------------------------------------------------------------------------- |
+| `username`           | string | unset   | Connected Last.fm account. Set by connecting in the settings                |
+| `session_key`        | string | unset   | Last.fm session key. Set by connecting in the settings, keep it private     |
+| `scrobble_threshold` | float  | `0.5`   | Fraction of a song that must play before it scrobbles, clamped to `0.05`–`1.0` |
 
-- **Equalizer arrays**: If `gains` or `q_values` don't have exactly 10 values, they'll be reset to defaults
-- **Invalid TOML**: If the file has syntax errors, Vleer loads defaults and logs a warning
-- **Missing sections**: Missing sections are automatically populated with defaults
+### Updates
+
+| Option       | Type    | Default                  | Description                                 |
+| ------------ | ------- | ------------------------ | ------------------------------------------- |
+| `auto_check` | boolean | `true`                   | Check for updates on startup                |
+| `channel`    | string  | channel of the running build | `"stable"` or `"nightly"`               |
+
+## Validation and Migration
+
+- **Old config files**: files from before version 2 used a flatter layout (`[scan]`, `[audio]`, `[equalizer]`, `discord_rpc`, `[updater]`, `[lastfm]`). Vleer migrates them automatically and rewrites the file in the new layout.
+- **Invalid TOML**: Vleer runs with defaults, shows a warning, and stops writing to the file so your original is preserved. Fix the file and reload.
+- **Missing options**: missing sections and options use their defaults.
 
 ## Reloading Configuration
 
-Changes to `config.toml` can be reloaded without restarting Vleer by using the keyboard shortcut:
+Reload `config.toml` without restarting Vleer:
 
 - **Linux/Windows**: <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd>
 - **macOS**: <kbd>Cmd</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd>
 
-<Callout title="Immediate Effect" type="info">
-  Configuration changes take effect immediately after reloading, without
-  interrupting playback.
-</Callout>
+Changes apply immediately without interrupting playback, and Vleer rescans your library folders.

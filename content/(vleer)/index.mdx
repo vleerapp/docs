@@ -1,19 +1,19 @@
 ---
 title: Documentation
-description: The music player, but without a subscription
+description: Music, but without the subscription
 icon: pixelarticons:book-open
 ---
 
-import { Icon } from '@iconify/react';
+import { Icon } from "@iconify/react";
 
-Welcome to the documentation of **Vleer** here you will find everything you need to get started on your private music listening journey, make your own implemenetation of the OpenMusic API Spec and start using it with any compatible client, configure Vleer to your liking or how to use the OpenMusicMetadata API to centralize all your music's metadata.
+Welcome to the documentation of **Vleer**, a free, open-source music player written in Rust. It plays your own library, fixes messy tags without touching your files, and needs no account.
 
 <Cards cols={2}>
   <Card
-    title="Architecture"
-    href="/architecture"
-    icon={<Icon icon="pixelarticons:git-pull-request" />}
-    description="The architecture and components of the Vleer music player"
+    title="Installation"
+    href="/installation"
+    icon={<Icon icon="pixelarticons:download" />}
+    description="Install Vleer on Linux, macOS and Windows"
   />
   <Card
     title="Configuration"
@@ -22,15 +22,21 @@ Welcome to the documentation of **Vleer** here you will find everything you need
     description="All available configuration options for Vleer"
   />
   <Card
-    title="OpenMusic"
-    href="/openmusic"
-    icon={<Icon icon="pixelarticons:music" />}
-    description="The documentation for OpenMusic API Spec"
+    title="Architecture"
+    href="/architecture"
+    icon={<Icon icon="pixelarticons:git-pull-request" />}
+    description="How the Vleer app is put together"
+  />
+  <Card
+    title="Vleer API"
+    href="/api"
+    icon={<Icon icon="pixelarticons:server" />}
+    description="Downloads, updates and telemetry at api.vleer.app"
   />
   <Card
     title="OpenMusicMetadata"
     href="/openmusicmetadata"
     icon={<Icon icon="pixelarticons:calendar-grid" />}
-    description="How to use the OpenMusicMetadata API"
+    description="Canonical metadata for songs, albums and artists"
   />
 </Cards>
