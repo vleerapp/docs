@@ -1,9 +1,0 @@
-{
-  "title": "Explore",
-  "icon": "pixelarticons:map",
-  "pages": [
-    "guide",
-    "endpoints",
-    "models"
-  ]
-}

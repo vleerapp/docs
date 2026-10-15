@@ -1,9 +1,0 @@
-{
-  "title": "Albums",
-  "icon": "pixelarticons:album",
-  "pages": [
-    "guide",
-    "endpoints",
-    "models"
-  ]
-}

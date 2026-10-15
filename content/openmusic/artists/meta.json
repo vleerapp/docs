@@ -1,9 +1,0 @@
-{
-  "title": "Artists",
-  "icon": "pixelarticons:user",
-  "pages": [
-    "guide",
-    "endpoints",
-    "models"
-  ]
-}

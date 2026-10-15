@@ -1,9 +1,0 @@
-{
-  "title": "Playlists",
-  "icon": "pixelarticons:playlist",
-  "pages": [
-    "guide",
-    "endpoints",
-    "models"
-  ]
-}

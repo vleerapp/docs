@@ -1,9 +1,0 @@
-{
-  "title": "Stations",
-  "icon": "pixelarticons:radio-signal",
-  "pages": [
-    "guide",
-    "endpoints",
-    "models"
-  ]
-}
