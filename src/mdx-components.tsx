@@ -1,6 +1,6 @@
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
-import type { OperationItem, WebhookItem } from "fumadocs-openapi/ui";
+import type { OperationItem, WebhookItem } from "fumadocs-openapi";
 import { OpenAPIPage } from "@/src/components/openapi-page";
 import { openapiServer } from "@/scripts/openapi";
 
