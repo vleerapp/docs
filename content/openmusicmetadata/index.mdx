@@ -1,6 +1,6 @@
 ---
 title: Overview
-description: Canonical metadata for the OpenMusic ecosystem.
+description: Canonical metadata for songs, albums, and artists.
 icon: pixelarticons:book-open
 ---
 
@@ -11,14 +11,18 @@ import { Icon } from "@iconify/react";
   happen at any time.
 </Callout>
 
-OpenMusicMetadata is a read-only metadata API for canonical songs, albums, and artists. OpenMusic servers can use OpenMusicMetadata ids to map the same musical entity across different catalogs.
+OpenMusicMetadata is a free, read-only metadata API for canonical songs, albums, and artists. It is what Vleer uses to fix names, merge artists and fill in artwork, and you can use it in your own projects.
+
+```txt
+https://api.vleer.app/metadata/v1
+```
 
 <Cards>
   <Card
     title="API Specifications"
     href="/openmusicmetadata/implementation"
     icon={<Icon icon="pixelarticons:code" />}
-    description="Core conventions used by the OpenMusicMetadata endpoint"
+    description="Core conventions used by the OpenMusicMetadata endpoints"
   />
   <Card
     title="Download YAML"
@@ -46,10 +50,10 @@ GET /catalog?isrc=USRC17607839
 GET /catalog?upc=602455878540
 ```
 
-Use `/identify/{type}` when you need to identify the canonical OpenMusicMetadata resource for metadata.
+Use `/identify/{type}` when you only have a name and need the best matching canonical resource.
 
 ```http
-GET /identify/song?name=blue&artist=example
+GET /identify/song?name=blue&artist=example&album=example&duration=215000
 GET /identify/album?name=blue&artist=example
 GET /identify/artist?name=example
 ```

@@ -3,7 +3,7 @@ info:
   title: OpenMusicMetadata API
   version: 1.0.0
   description: |
-    Canonical metadata for OpenMusic songs, albums, and artists.
+    Canonical metadata for songs, albums, and artists.
 
     Requests are rate limited per client IP with a burst of 20 requests, refilling one request every 50 ms.
   license:
@@ -36,6 +36,10 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
 
   /catalog:
     get:
@@ -43,15 +47,15 @@ paths:
       summary: Get catalog resources
       operationId: getCatalogResources
       description: |
-        Returns matching resources. Use exactly one of ids, isrc, or upc.
+        Returns matching resources with all available attributes and relationships. Use exactly one of ids, isrc, or upc.
 
-        - ids returns resources in request order. Invalid and missing ids are omitted from data.
+        - ids returns resources in request order. Duplicate ids are returned once per occurrence. Invalid and missing ids are omitted from data.
         - isrc and upc return resources ordered by id. Unknown values are omitted from data.
+        - Songs without an artist or album, and albums without an artist, are treated as missing.
       parameters:
         - $ref: "#/components/parameters/CatalogIds"
         - $ref: "#/components/parameters/CatalogIsrc"
         - $ref: "#/components/parameters/CatalogUpc"
-        - $ref: "#/components/parameters/Include"
       responses:
         "200":
           description: Resource list
@@ -65,15 +69,19 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
 
   /catalog/{id}:
     get:
       tags: [Catalog]
       summary: Get one catalog resource
       operationId: getCatalogResource
+      description: Returns one resource with all available attributes and relationships.
       parameters:
         - $ref: "#/components/parameters/ResourceId"
-        - $ref: "#/components/parameters/Include"
       responses:
         "200":
           description: Resource
@@ -89,13 +97,22 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
 
   /identify/{type}:
     get:
       tags: [Identify]
       summary: Identify one metadata resource
       operationId: identifyResource
-      description: Identifies the canonical canonical OpenMusicMetadata resource. Songs use name, artist, and album. Albums use name and artist. Artists use name. Parameters not used by the type are ignored.
+      description: |
+        Finds the best matching OpenMusicMetadata resource and returns it with all available attributes and relationships.
+
+        Songs use name, artist, album, and duration. Albums use name and artist. Artists use name. Parameters not used by the type are ignored.
+
+        Candidates are ranked by fuzzy name, artist, and album similarity plus popularity. For songs, a duration within 50 ms of a candidate adds a ranking bonus that grows as the difference shrinks. Candidates outside that window are not penalized.
       parameters:
         - name: type
           in: path
@@ -124,7 +141,14 @@ paths:
           schema:
             type: string
             maxLength: 256
-        - $ref: "#/components/parameters/Include"
+        - name: duration
+          in: query
+          required: false
+          description: Song duration in milliseconds. Used to identify songs. Values of 0 or less are ignored. A non-integer value is rejected with 400.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
       responses:
         "200":
           description: Identified resource
@@ -139,6 +163,10 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
         "500":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
           $ref: "#/components/responses/Error"
 
 components:
@@ -206,19 +234,6 @@ components:
         maxLength: 10000
       example: "602455878540"
 
-    Include:
-      name: include
-      in: query
-      required: false
-      description: Comma-separated relationships to include. Includes are limited to one relationship level. Songs support albums and artists. Albums support artists. Artists support none. Unsupported values are ignored.
-      schema:
-        type: string
-      examples:
-        song:
-          value: albums,artists
-        album:
-          value: artists
-
   schemas:
     Info:
       type: object
@@ -268,7 +283,7 @@ components:
 
     Song:
       type: object
-      required: [id, type, attributes]
+      required: [id, type, attributes, relationships]
       properties:
         id:
           $ref: "#/components/schemas/Id"
@@ -276,16 +291,18 @@ components:
           const: song
         attributes:
           type: object
-          required: [name]
+          required: [name, artistNames]
           properties:
             name:
               type: string
             albumName:
               type: string
               description: Name of the first album.
-            artistName:
-              type: string
-              description: Artist names joined with ", ".
+            artistNames:
+              type: array
+              description: Artist names, ordered by name. Full artists are in relationships.
+              items:
+                type: string
             isrc:
               type: string
             artworkUrl:
@@ -305,7 +322,8 @@ components:
               minimum: 1
         relationships:
           type: object
-          description: Present only when at least one supported relationship is included.
+          description: Related resources. Albums nested here never have relationships.
+          required: [albums, artists]
           properties:
             albums:
               $ref: "#/components/schemas/AlbumList"
@@ -322,19 +340,23 @@ components:
           const: album
         attributes:
           type: object
-          required: [name, trackCount]
+          required: [name, trackCount, artistNames]
           properties:
             name:
               type: string
             trackCount:
               type: integer
               minimum: 0
-            artistName:
-              type: string
-              description: Artist names joined with ", ".
+            artistNames:
+              type: array
+              description: Artist names, ordered by name. Full artists are in relationships.
+              items:
+                type: string
             artworkUrl:
               $ref: "#/components/schemas/ArtworkUrl"
             upc:
+              type: string
+            label:
               type: string
             genres:
               $ref: "#/components/schemas/Genres"
@@ -342,7 +364,8 @@ components:
               $ref: "#/components/schemas/ReleaseDate"
         relationships:
           type: object
-          description: Present only when artists is included. Albums nested in a song never have relationships.
+          description: Present except when the album is nested in a song's relationships.
+          required: [artists]
           properties:
             artists:
               $ref: "#/components/schemas/ArtistList"
@@ -363,6 +386,8 @@ components:
               type: string
             artworkUrl:
               $ref: "#/components/schemas/ArtworkUrl"
+            genres:
+              $ref: "#/components/schemas/Genres"
 
     Resource:
       oneOf:

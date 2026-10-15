@@ -4,7 +4,7 @@ description: Canonical metadata resource types.
 icon: pixelarticons:book-open
 ---
 
-OpenMusicMetadata resources use the same core resource shape as OpenMusic.
+All resources share the same core shape.
 
 ```ts
 type Type = "song" | "album" | "artist";
@@ -17,9 +17,16 @@ interface Resource {
 
 ## Relationships
 
-Only these relationships are supported:
+Only these relationships exist, and they are always returned:
 
-| Resource | Relationships |
-| --- | --- |
-| `song` | `albums`, `artists` |
-| `album` | `artists` |
+| Resource | Relationships       |
+| -------- | ------------------- |
+| `song`   | `albums`, `artists` |
+| `album`  | `artists`           |
+
+## Value formats
+
+- `releaseDate` is `YYYY`, `YYYY-MM` or `YYYY-MM-DD`.
+- `genres` is omitted when empty, never an empty array.
+- `artworkUrl` may contain `{w}` and `{h}` placeholders, see [API Specifications](/openmusicmetadata/implementation#artwork).
+- `artistNames` is ordered by name.

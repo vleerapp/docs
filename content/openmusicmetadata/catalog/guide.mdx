@@ -4,13 +4,19 @@ description: Fetch resources by id, ISRC, or UPC.
 icon: pixelarticons:book-open
 ---
 
-Use the catalog when you already have OpenMusicMetadata ids, a song ISRC, or an album UPC.
+Use the catalog when you already have OpenMusicMetadata ids, a song ISRC, or an album UPC. Every resource is returned with all of its attributes and relationships.
 
-`ids`, `isrc`, and `upc` are separate modes and cannot be combined in the same request.
+`ids`, `isrc`, and `upc` are separate modes and cannot be combined in the same request. Providing none or more than one returns `400`.
 
-Requests support at most 100 comma-separated values for `ids`, `isrc`, or `upc`.
+Requests support at most 100 comma-separated values and 10000 characters.
 
-`ids` keeps the request order. `isrc` and `upc` results are ordered by id. Invalid or missing values are omitted from `data`.
+| Mode   | Order                                                                          |
+| ------ | ------------------------------------------------------------------------------ |
+| `ids`  | Request order. Duplicate ids are returned once per occurrence                  |
+| `isrc` | Ordered by id                                                                  |
+| `upc`  | Ordered by id                                                                  |
+
+Invalid ids, unknown values and missing resources are omitted from `data`. Songs without an artist or album, and albums without an artist, are treated as missing.
 
 ## One Resource
 
@@ -18,7 +24,7 @@ Requests support at most 100 comma-separated values for `ids`, `isrc`, or `upc`.
 GET /catalog/omm:song:0a1b2c3d4e5f6g7h
 ```
 
-The response is `Single<Song | Album | Artist>`.
+The response is `Single<Song | Album | Artist>`. Returns `404` if the resource doesn't exist.
 
 ## Many by Id
 
@@ -29,6 +35,8 @@ GET /catalog?ids=omm:song:0a1b2c3d4e5f6g7h,omm:album:1a2b3c4d5e6f7g8h,omm:artist
 The response is `List<Song | Album | Artist>`.
 
 ## Many by ISRC
+
+ISRC values are matched case-insensitively.
 
 ```http
 GET /catalog?isrc=USRC17607839
@@ -43,19 +51,3 @@ GET /catalog?upc=602455878540
 ```
 
 The response is `List<Album>`.
-
-## Includes
-
-Includes are limited to one relationship level.
-
-Songs can include albums and artists:
-
-```http
-GET /catalog/omm:song:0a1b2c3d4e5f6g7h?include=albums,artists
-```
-
-Albums can include artists:
-
-```http
-GET /catalog/omm:album:1a2b3c4d5e6f7g8h?include=artists
-```

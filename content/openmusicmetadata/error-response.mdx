@@ -4,7 +4,7 @@ description: How errors are returned.
 icon: pixelarticons:warning-diamond
 ---
 
-Errors use the same response shape as OpenMusic.
+Errors are returned as JSON.
 
 ```ts
 interface ErrorResponse {
@@ -15,4 +15,30 @@ interface ErrorResponse {
 }
 ```
 
-Rate limited requests return `429` with a plain text body and a `retry-after` header.
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Provide exactly one of ids, isrc, or upc"
+  }
+}
+```
+
+## Status codes
+
+| Status | Meaning                                                                     |
+| ------ | --------------------------------------------------------------------------- |
+| `400`  | Invalid request, for example a malformed id, a missing `name` or too many lookup values |
+| `404`  | The resource wasn't found, or `identify` found no match                     |
+| `429`  | Rate limit exceeded                                                         |
+| `500`  | Unexpected server error                                                     |
+| `503`  | The metadata database is temporarily unavailable                            |
+| `504`  | The query timed out                                                         |
+
+## Rate limits
+
+Rate limited requests return `429` with a plain text body, a `retry-after` header and an `x-ratelimit-after` header. Both headers contain the number of seconds to wait.
+
+```txt
+Too Many Requests! Wait for 1s
+```

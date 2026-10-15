@@ -4,6 +4,14 @@ description: Core conventions used by OpenMusicMetadata.
 icon: pixelarticons:code
 ---
 
+## Base URL
+
+```txt
+https://api.vleer.app/metadata/v1
+```
+
+## Resource ids
+
 Resource ids are OpenMusicMetadata ids in the form `omm:TYPE:ID`, where `ID` is 16 lowercase alphanumeric characters.
 
 ```txt
@@ -12,17 +20,31 @@ omm:album:1a2b3c4d5e6f7g8h
 omm:artist:2a3b4c5d6e7f8g9h
 ```
 
-Each resource has an `id`, a singular `type`, `attributes`, and optional `relationships`.
+Each resource has an `id`, a singular `type`, `attributes`, and for songs and albums `relationships`.
 
-## Includes
+## Relationships
 
-OpenMusicMetadata supports only these includes:
+Every response contains all available attributes and relationships. There is nothing to opt into.
 
-| Resource | Includes |
-| --- | --- |
-| `song` | `albums`, `artists` |
-| `album` | `artists` |
+| Resource | Relationships       |
+| -------- | ------------------- |
+| `song`   | `albums`, `artists` |
+| `album`  | `artists`           |
 
-Includes are limited to one relationship level.
+Relationships are one level deep. Albums nested in a song's `relationships` don't have relationships of their own.
 
-Included relationships are returned completely for the metadata record.
+## Artwork
+
+`artworkUrl` may contain `{w}` and `{h}` placeholders. Replace them with the width and height in pixels you want.
+
+```txt
+https://example.com/image/{w}x{h}.jpg
+```
+
+## Rate limits
+
+Requests are rate limited per client IP with a burst of 20 requests, refilling one request every 50 ms. Exceeding the limit returns `429`, see [Error Response](/openmusicmetadata/error-response).
+
+## CORS
+
+Browser requests are only allowed from an allowlist of origins. Call the API from a server or native app.

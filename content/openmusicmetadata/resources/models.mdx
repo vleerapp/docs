@@ -12,7 +12,7 @@ interface Song extends Resource {
   attributes: {
     name: string;
     albumName?: string;
-    artistName?: string;
+    artistNames: string[];
     isrc?: string;
     artworkUrl?: string;
     trackNumber?: number;
@@ -21,12 +21,14 @@ interface Song extends Resource {
     releaseDate?: string;
     durationMs?: number;
   };
-  relationships?: {
-    albums?: List<Album>;
-    artists?: List<Artist>;
+  relationships: {
+    albums: List<Album>;
+    artists: List<Artist>;
   };
 }
 ```
+
+`albumName` is the name of the first album. Albums in `relationships.albums` have no relationships.
 
 ## Album
 
@@ -36,17 +38,20 @@ interface Album extends Resource {
   attributes: {
     name: string;
     trackCount: number;
-    artistName?: string;
+    artistNames: string[];
     artworkUrl?: string;
     upc?: string;
+    label?: string;
     genres?: string[];
     releaseDate?: string;
   };
   relationships?: {
-    artists?: List<Artist>;
+    artists: List<Artist>;
   };
 }
 ```
+
+`relationships` is present except when the album is nested in a song's relationships.
 
 ## Artist
 
@@ -56,6 +61,7 @@ interface Artist extends Resource {
   attributes: {
     name: string;
     artworkUrl?: string;
+    genres?: string[];
   };
 }
 ```

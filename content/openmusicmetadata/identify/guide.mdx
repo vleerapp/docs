@@ -1,10 +1,10 @@
 ---
 title: Identify
-description: Identify the canonical OpenMusicMetadata resource for metadata.
+description: Find the best matching OpenMusicMetadata resource for a name.
 icon: pixelarticons:book-open
 ---
 
-Use identify when you have metadata and need one canonical OpenMusicMetadata resource.
+Use identify when you have metadata, like a name and an artist, and need the one best matching canonical resource. The resource is returned with all of its attributes and relationships.
 
 ```http
 GET /identify/song?name=blue&artist=example
@@ -12,22 +12,24 @@ GET /identify/album?name=blue&artist=example
 GET /identify/artist?name=example
 ```
 
-Song identification can use album name as extra context.
+`name` is required and all parameters are limited to 256 characters. Parameters a type doesn't use are ignored.
+
+| Type     | Parameters                           |
+| -------- | ------------------------------------ |
+| `song`   | `name`, `artist`, `album`, `duration` |
+| `album`  | `name`, `artist`                     |
+| `artist` | `name`                               |
 
 ```http
-GET /identify/song?name=blue&album=example&artist=artist
+GET /identify/song?name=blue&album=example&artist=artist&duration=215000
 ```
 
-Album identification can use artist name as extra context.
+## Ranking
 
-```http
-GET /identify/album?name=example&artist=artist
-```
+Candidates are ranked by fuzzy similarity of name, artist and album, plus popularity.
 
-Artist identification only uses artist name.
+For songs, `duration` is in milliseconds. A candidate whose duration is within 50 ms of it gets a ranking bonus that grows as the difference shrinks. Candidates outside that window aren't penalized. Values of `0` or less are ignored, and a non-integer value returns `400`.
 
-```http
-GET /identify/artist?name=artist
-```
+## Response
 
 The response is `Single<Song | Album | Artist>`. The returned type matches the requested `type`. Returns `404` when nothing is found.
