@@ -1,0 +1,16 @@
+{
+  "title": "juuz",
+  "description": "Self-hosted OpenSubsonic server",
+  "icon": "pixelarticons:music",
+  "root": true,
+  "pages": [
+    "---Introduction---",
+    "index",
+    "installation",
+    "config",
+    "---API---",
+    "authentication",
+    "api",
+    "upload"
+  ]
+}

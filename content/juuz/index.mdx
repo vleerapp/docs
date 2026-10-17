@@ -1,0 +1,75 @@
+---
+title: Overview
+description: An OpenSubsonic server with song uploads and OpenMusicMetadata tagging
+icon: pixelarticons:book-open
+---
+
+import { Icon } from "@iconify/react";
+
+**juuz** is a self-hosted [OpenSubsonic](https://opensubsonic.netlify.app/) server written in Rust. It serves your library to any Subsonic client, lets apps upload music straight to the server, and fixes missing tags through [OpenMusicMetadata](/openmusicmetadata) without touching your files. It works with any OpenSubsonic client, and you are free to build your own.
+
+<Cards cols={2}>
+  <Card
+    title="Installation"
+    href="/juuz/installation"
+    icon={<Icon icon="pixelarticons:download" />}
+    description="Run juuz with Docker"
+  />
+  <Card
+    title="Configuration"
+    href="/juuz/config"
+    icon={<Icon icon="pixelarticons:sliders" />}
+    description="Environment variables and the data folder"
+  />
+  <Card
+    title="Authentication"
+    href="/juuz/authentication"
+    icon={<Icon icon="pixelarticons:lock" />}
+    description="Password, token and API key login"
+  />
+  <Card
+    title="API"
+    href="/juuz/api"
+    icon={<Icon icon="pixelarticons:code" />}
+    description="OpenSubsonic 1.16.1 and the juuz extensions"
+  />
+  <Card
+    title="Song upload"
+    href="/juuz/upload"
+    icon={<Icon icon="pixelarticons:upload" />}
+    description="Save songs, covers and lyrics to the server"
+  />
+  <Card
+    title="Source"
+    href="https://github.com/vleerapp/juuz"
+    icon={<Icon icon="pixelarticons:github" />}
+    description="juuz on GitHub"
+  />
+</Cards>
+
+## Features
+
+- **Song upload**: apps save music straight to the server instead of the device, with covers, lyrics and tag fixing included
+- OpenSubsonic API 1.16.1 in JSON and XML, tested with Feishin and Arpeggi
+- Password, token and API key login work for every user
+- Songs and artists are matched through [OpenMusicMetadata](/openmusicmetadata) and exposed as `ommId`. Missing years, genres and artwork are filled in without touching the files
+- Songs are identified by their audio, so renaming or moving files keeps stars, playlists and history
+- Last.fm scrobbling and now playing, linked per user
+- Embedded lyrics and `.lrc` files first, then synced lyrics from LRCLIB
+- Albums and compilations are grouped correctly without an album artist tag
+- A live SQLite library that watches the music folders
+- Opus, MP3 and AAC transcoding (`format=opus`, `mp3`, `aac`) in pure Rust, no ffmpeg
+- Podcasts, shares, internet radio, play queue and bookmarks
+- Jukebox: the server plays to a DLNA speaker and any `jukeboxControl` app acts as the remote
+
+## Web UI
+
+Open `http://<host>:4533` and sign in with any juuz user. There is no player. Pages:
+
+| Page      | Description                                                                          |
+| --------- | ------------------------------------------------------------------------------------ |
+| `stats`   | Top songs, albums and artists, recent plays and plays per day. Admins can see everyone |
+| `account` | Username, max bitrate, play recording, password and Last.fm link                     |
+| `keys`    | [API keys](/juuz/authentication#api-keys)                                            |
+| `users`   | Users and roles. Admin only                                                          |
+| `server`  | Library scan and a read-only view of the server configuration. Admin only            |

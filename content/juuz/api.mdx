@@ -1,0 +1,98 @@
+---
+title: API
+description: OpenSubsonic 1.16.1 and the juuz extensions
+icon: pixelarticons:code
+---
+
+juuz implements the [OpenSubsonic](https://opensubsonic.netlify.app/docs/) API at version `1.16.1`. Standard endpoints behave as described in the OpenSubsonic documentation and are not repeated here. This page covers what is specific to juuz.
+
+```txt
+http://<host>:4533/rest/<endpoint>
+```
+
+## Conventions
+
+- Every endpoint is available as `/rest/<endpoint>` and `/rest/<endpoint>.view`, with any HTTP method.
+- Authenticate every call, see [Authentication](/juuz/authentication). `juuzUploadSong` authenticates inside the handler, and `getOpenSubsonicExtensions` needs no authentication.
+- `f=json` returns JSON, `f=jsonp&callback=<name>` returns JSONP and the default is XML.
+- CORS is permissive.
+
+```json
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "juuz",
+    "serverVersion": "0.1.0",
+    "openSubsonic": true
+  }
+}
+```
+
+Errors set `status` to `failed` and add `error: {code, message}`.
+
+## OpenSubsonic extensions
+
+`getOpenSubsonicExtensions` lists what the server supports:
+
+| Extension              | Version | Notes                                    |
+| ---------------------- | ------- | ---------------------------------------- |
+| `apiKeyAuthentication` | 1       | [API keys](/juuz/authentication#api-keys) |
+| `formPost`             | 1       |                                          |
+| `songLyrics`           | 1       |                                          |
+| `indexBasedQueue`      | 1       |                                          |
+| `openMusicMetadata`    | 1       | Exposes `ommId` on songs, albums and artists |
+| `juuzSongUpload`       | 1       | [Song upload](/juuz/upload)              |
+| `juuzJukeboxOutput`    | 1       | [Jukebox](#jukebox)                      |
+| `juuzJukeboxEvents`    | 1       | [Jukebox](#jukebox)                      |
+| `juuzLastfm`           | 1       | Only when [Last.fm](/juuz/config#lastfm) is configured |
+
+## Not supported
+
+| Endpoint      | Result                                          |
+| ------------- | ----------------------------------------------- |
+| `hls`         | Error: `this operation is not supported by the server` |
+| `getCaptions` | Error `70`, `requested item not found`         |
+| `getVideos`   | Always returns an empty list                    |
+| `getVideoInfo`| Error `70`, `video not found`                   |
+
+## Last.fm
+
+`juuzLastfmStatus` always works and reports `configured`. The other calls need [Last.fm configured](/juuz/config#lastfm).
+
+| Endpoint            | Parameters | Response                                                |
+| ------------------- | ---------- | ------------------------------------------------------- |
+| `juuzLastfmStatus`  |            | `{"juuzLastfm": {configured, linked, username}}`        |
+| `juuzLastfmAuthUrl` |            | `{"juuzLastfm": {token, url}}`. Open `url` to allow access |
+| `juuzLastfmLink`    | `token`    | `{"juuzLastfm": {linked: true, username}}`              |
+| `juuzLastfmUnlink`  |            | Removes the link                                        |
+
+## Jukebox
+
+The server plays to a DLNA speaker. `jukeboxControl` works as in OpenSubsonic and needs the jukebox role or admin.
+
+| Endpoint                 | Parameters      | Description                                                            |
+| ------------------------ | --------------- | ---------------------------------------------------------------------- |
+| `juuzGetJukeboxOutputs`  |                 | Lists known devices and the current output. Needs the jukebox role     |
+| `juuzScanJukeboxOutputs` |                 | Scans the network for devices. Admin only                              |
+| `juuzSetJukeboxOutput`   | `id` or `url`   | Selects the output device. Admin only                                  |
+| `juuzJukeboxEvents`      |                 | Server-sent events stream. Sends a `status` event on every change      |
+
+Outputs return `{"juuzJukeboxOutputs": {device: [{id, name}], current: {id, name, online}}}`.
+
+## Library
+
+| Endpoint          | Parameters                                   | Description                                         |
+| ----------------- | -------------------------------------------- | --------------------------------------------------- |
+| `juuzUploadSong`  | See [Song upload](/juuz/upload)              | Upload a song, cover or lyrics                      |
+| `juuzDeleteSong`  | `id` (repeatable)                            | Delete songs. Needs the upload role                 |
+
+`juuzDeleteSong` removes the file, its `.lrc` and `.txt` lyrics and empty folders left behind, then returns an empty response.
+
+## Other routes
+
+| Route                              | Description                                   |
+| ---------------------------------- | --------------------------------------------- |
+| `GET /share/<id>`                  | Public page of a share created with `createShare` |
+| `GET /share/<id>/stream/<song>`    | Streams a song of a public share              |
+| `GET /jukebox/stream/<id>/<file>`  | Stream the jukebox speaker pulls from         |

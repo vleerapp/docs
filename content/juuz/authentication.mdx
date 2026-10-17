@@ -1,0 +1,45 @@
+---
+title: Authentication
+description: Password, token and API key login
+icon: pixelarticons:lock
+---
+
+Every `/rest` call authenticates with query or form parameters. All three styles work for every user.
+
+| Style    | Parameters      | Description                                                        |
+| -------- | --------------- | ------------------------------------------------------------------ |
+| Password | `u`, `p`        | Plain, or hex encoded with an `enc:` prefix (`p=enc:70617373`)     |
+| Token    | `u`, `t`, `s`   | `t` is `md5(password + s)` as hex, `s` is a random salt            |
+| API key  | `apiKey`        | A key starting with `jz_`                                          |
+
+```http
+GET /rest/ping?f=json&u=admin&p=change-me
+GET /rest/ping?f=json&apiKey=jz_...
+```
+
+<Callout title="Token login" type="info">
+  juuz needs the password to check a token. A user must log in once with `p` before `t` and `s` work, otherwise the call fails with error `41`. Most clients do this on their own.
+</Callout>
+
+## API keys
+
+API keys let apps authenticate without a password. They are stored as a SHA-256 hash, so a key is shown only once, when it is created. Create and manage keys on the `keys` page of the web UI or with these calls:
+
+| Endpoint            | Parameters                                    | Description                                         |
+| ------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `juuzCreateApiKey`  | `name` (label), `username` (admin only)       | Returns `{"juuzApiKey": {id, name, username, key}}` |
+| `juuzGetApiKeys`    | `username` (admin only)                       | Returns `{"juuzApiKeys": {"apiKey": [{id, name, created}]}}` |
+| `juuzDeleteApiKey`  | `id`, `username` (admin only)                 | Deletes a key                                       |
+
+`username` lets an admin manage the keys of another user.
+
+## Errors
+
+| Code | Message                                                     | When                                         |
+| ---- | ----------------------------------------------------------- | -------------------------------------------- |
+| `10` | `required parameter is missing: p`                          | No `p`, `t` and `s` or `apiKey` was sent     |
+| `40` | `wrong username or password`                                | Unknown user, wrong password or wrong token  |
+| `41` | `log in once with a password so token authentication can be enabled` | Token login before a password login |
+| `43` | `multiple conflicting authentication mechanisms provided`   | `apiKey` sent together with `u`, `p`, `t` or `s` |
+| `44` | `invalid api key`                                           | The key does not exist or was deleted        |
+| `50` | for example `user is not authorized to upload`              | The user lacks the role for this call        |

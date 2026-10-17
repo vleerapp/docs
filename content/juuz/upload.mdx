@@ -1,0 +1,98 @@
+---
+title: Song upload
+description: Save songs, covers and lyrics to the server
+icon: pixelarticons:upload
+---
+
+Apps send a file to `juuzUploadSong`. juuz writes the tags, saves the file in the music folder and indexes it right away, so it shows up in every client without a rescan.
+
+```http
+POST /rest/juuzUploadSong
+Content-Type: multipart/form-data
+```
+
+```sh
+curl -F file=@track.flac \
+  "http://localhost:4533/rest/juuzUploadSong?f=json&apiKey=$KEY&title=Song&artist=Artist&album=Album&track=1&year=2020"
+```
+
+The user needs the upload role, and uploads must not be disabled. Authenticate with an [API key](/juuz/authentication#api-keys) or with `u` plus `p` or `t` and `s`. Parameters can go in the query string or as text fields before the `file` part.
+
+## Parameters
+
+| Parameter       | Description                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| `file`          | The file, as the multipart field. Required                                                   |
+| `kind`          | `song` (default), `cover` or `lyrics`                                                        |
+| `title`         | Song title                                                                                   |
+| `artist`        | Artist. Repeat for several artists                                                           |
+| `albumArtist`   | Album artist                                                                                 |
+| `album`         | Album title                                                                                  |
+| `track`, `disc` | Track and disc number                                                                        |
+| `year`          | Release year                                                                                 |
+| `date`          | Full release date. Takes priority over `year`                                                |
+| `genre`         | Genre. Repeat for several genres                                                             |
+| `relativePath`  | Original path of the file. Missing tags are guessed from it                                  |
+| `ommId`         | [OpenMusicMetadata](/openmusicmetadata) song id                                              |
+| `ommAlbumId`    | OpenMusicMetadata album id                                                                   |
+| `ommArtistId`   | OpenMusicMetadata artist id                                                                  |
+| `preferOmm`     | `true` to let OpenMusicMetadata overwrite the tags already in the file. Parameters you pass still win                              |
+| `albumId`       | Album, or song, id for `kind=cover`                                                          |
+| `songId`        | Song id for `kind=lyrics`                                                                    |
+
+Missing tags are filled from the file's own tags, then from OpenMusicMetadata (unless `JUUZ_OMM` is off), and finally guessed from `relativePath` or the original file name. Tags you pass always win. `preferOmm` only lets OpenMusicMetadata replace tags that are already in the file.
+
+A form can have at most 64 text fields of 8 KiB each. Send them before the `file` part, fields after it are ignored.
+
+## Where files go
+
+```txt
+music/
+└── Artist/
+    └── 2020 - Album/
+        └── 01 - Song.flac
+```
+
+Supported formats are FLAC, MP3, M4A, AAC, Opus, Ogg Vorbis, WAV, AIFF and WavPack. The format is detected from the content, not the file name.
+
+## Covers and lyrics
+
+```sh
+curl -F file=@cover.jpg \
+  "http://localhost:4533/rest/juuzUploadSong?f=json&apiKey=$KEY&kind=cover&albumId=$ALBUM"
+
+curl -F file=@song.lrc \
+  "http://localhost:4533/rest/juuzUploadSong?f=json&apiKey=$KEY&kind=lyrics&songId=$SONG"
+```
+
+- **Cover**: a JPEG, PNG or WebP of up to 10 MiB, saved as `cover.<ext>` in the album folder. It replaces the old cover.
+- **Lyrics**: UTF-8 text of up to 1 MiB, saved next to the song. Text with `[mm:ss]` timestamps becomes a `.lrc` file, anything else a `.txt` file.
+
+## Response
+
+```json
+{
+  "subsonic-response": {
+    "status": "ok",
+    "juuzUploadResult": {
+      "status": "created",
+      "song": { "id": "...", "title": "Song" }
+    }
+  }
+}
+```
+
+`status` is `created`, or `duplicate` if the same song is already in the library. `song` is a regular OpenSubsonic song object. Cover uploads return `{"status": "created", "kind": "cover", "albumId": "..."}` and lyrics uploads `{"status": "created", "kind": "lyrics", "songId": "..."}`.
+
+## Errors
+
+| Message                                    | When                                          |
+| ------------------------------------------ | --------------------------------------------- |
+| `multipart/form-data body required`        | The request is not a multipart upload         |
+| `file exceeds the <n> byte limit`          | The file is over the limit, 2 GiB for songs   |
+| `not a valid audio file`                   | The file is not a supported audio format      |
+| `cover must be a jpeg, png or webp image`  | Wrong image type for `kind=cover`             |
+| `lyrics must be utf-8 text`                | Lyrics are not valid UTF-8                    |
+| `cannot write tags to this file format: ...` | You passed tags for a format that cannot hold them |
+| `uploads are disabled on this server`      | Error `50`                                    |
+| `user is not authorized to upload`         | Error `50`. The user needs the upload role    |

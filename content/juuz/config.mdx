@@ -1,0 +1,68 @@
+---
+title: Configuration
+description: Environment variables and the data folder
+icon: pixelarticons:sliders
+---
+
+juuz is configured with environment variables. Booleans accept `1`, `true`, `yes`, `on`, `0`, `false`, `no` and `off`.
+
+## Environment variables
+
+| Variable              | Default               | Description                                                       |
+| --------------------- | --------------------- | ----------------------------------------------------------------- |
+| `JUUZ_ADMIN_PASSWORD` | random, logged once   | Password of the `admin` user                                      |
+| `JUUZ_OMM`            | `true`                | Set `false` to stop sending track names to OpenMusicMetadata      |
+| `JUUZ_LASTFM_API_KEY` | unset                 | Last.fm API key. Scrobbling is off without it                     |
+| `JUUZ_LASTFM_SECRET`  | unset                 | Last.fm shared secret                                             |
+| `RUST_LOG`            | `juuz=info,tower_http=warn` | Log filter                                                  |
+| `NO_COLOR`            | unset                 | Disable colored log output                                        |
+
+<Callout title="Last.fm" type="info">
+  Set both `JUUZ_LASTFM_API_KEY` and `JUUZ_LASTFM_SECRET`. With only one of them, Last.fm stays disabled and juuz logs a warning.
+</Callout>
+
+<Callout title="OpenMusicMetadata" type="info">
+  With `JUUZ_OMM` on, juuz sends track details such as title, artist, album and duration to `https://api.vleer.app/metadata/v1` to match songs and fill in missing tags. Nothing is written to your files for matching alone. Set `JUUZ_OMM=false` to turn it off. See [OpenMusicMetadata](/openmusicmetadata) for the API.
+</Callout>
+
+## Last.fm
+
+Create an API account at [last.fm/api](https://www.last.fm/api/account/create), set both variables and restart. Each user links their account once:
+
+1. Call [`juuzLastfmAuthUrl`](/juuz/api#lastfm), open the returned `url` and allow access.
+2. Call `juuzLastfmLink?token=<token>` with the returned `token`.
+
+After that every `scrobble` from any app is forwarded to Last.fm as now playing and as a scrobble.
+
+## Folders
+
+In the Docker image the working directory is `/`, so juuz uses `/data` and `/music`. When started elsewhere it uses `./data` and `./music` relative to the working directory.
+
+| Path                    | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| `music/`                | Your library. Scanned on start and watched for changes   |
+| `music/.juuz-tmp`       | Temporary files of in-progress uploads                   |
+| `data/juuz.db`          | SQLite database                                          |
+| `data/secret.key`       | 32 byte key, created on first start with mode `0600`     |
+| `data/cache/art`        | Cover art cache                                          |
+| `data/cache/omm-art`    | Artwork fetched through OpenMusicMetadata                |
+| `data/cache/transcode`  | Transcoded streams                                       |
+| `data/podcasts`         | Downloaded podcast episodes                              |
+
+<Callout title="Keep secret.key" type="warn">
+  `secret.key` encrypts the stored passwords used for token login and the Last.fm session keys. Back it up with the database. If it is lost, tokens stop working until each user logs in with a password again, and Last.fm accounts have to be linked again.
+</Callout>
+
+## Fixed defaults
+
+These are not configurable yet.
+
+| Setting                    | Value                        |
+| -------------------------- | ---------------------------- |
+| Listen address             | `0.0.0.0:4533`               |
+| Library scan               | On start, then watched       |
+| Song upload                | Enabled, up to 2 GiB         |
+| Cover and lyrics upload    | Up to 10 MiB                 |
+| Podcast episode size       | Up to 2 GiB                  |
+| Podcasts from private hosts | Blocked                     |
+| Lyrics provider            | `https://lrclib.net/api`     |
