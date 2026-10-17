@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
-    "fumadocs-core": "16.17.3",
+    "fumadocs-core": "16.17.5",
     "fumadocs-mdx": "15.4.7",
-    "fumadocs-openapi": "12.4.2",
-    "fumadocs-ui": "16.17.3",
-    "next": "16.4.1",
+    "fumadocs-openapi": "12.5.2",
+    "fumadocs-ui": "16.17.5",
+    "next": "16.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
