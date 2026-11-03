@@ -14,33 +14,11 @@ servers:
     description: Production server
 
 tags:
-  - name: Info
   - name: Catalog
   - name: Identify
+  - name: Search
 
 paths:
-  /:
-    get:
-      tags: [Info]
-      summary: Get info
-      operationId: getInfo
-      description: Returns estimated resource counts.
-      responses:
-        "200":
-          description: Info
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Info"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/Error"
-        "503":
-          $ref: "#/components/responses/Error"
-        "504":
-          $ref: "#/components/responses/Error"
-
   /catalog:
     get:
       tags: [Catalog]
@@ -50,7 +28,7 @@ paths:
         Returns matching resources with all available attributes and relationships. Use exactly one of ids, isrc, or upc.
 
         - ids returns resources in request order. Duplicate ids are returned once per occurrence. Invalid and missing ids are omitted from data.
-        - isrc and upc return resources ordered by id. Unknown values are omitted from data.
+        - isrc and upc return resources ordered by id. Unknown values are omitted from data. An isrc matching several songs returns only the 5 most popular.
         - Songs without an artist or album, and albums without an artist, are treated as missing.
       parameters:
         - $ref: "#/components/parameters/CatalogIds"
@@ -112,6 +90,8 @@ paths:
 
         Songs use name, artist, album, and duration. Albums use name and artist. Artists use name. Parameters not used by the type are ignored.
 
+        Matching can be narrowed top-down with ids of already matched resources: artist_id for songs and albums, album_id for songs. Only the given scope is searched and the matching name parameter is not used for ranking. No match inside the scope is a 404. Ids never narrow upward, so a wrong song match cannot block matching its album or artist.
+
         Candidates are ranked by fuzzy name, artist, and album similarity plus popularity. For songs, a duration within 50 ms of a candidate adds a ranking bonus that grows as the difference shrinks. Candidates outside that window are not penalized.
       parameters:
         - name: type
@@ -141,6 +121,22 @@ paths:
           schema:
             type: string
             maxLength: 256
+        - name: artist_id
+          in: query
+          required: false
+          description: OpenMusicMetadata id of an already matched artist, in the form omm:artist:ID. Restricts matching to songs and albums by that artist instead of the whole catalog, which is more accurate. Takes precedence over artist. Ignored for artists. A malformed value is rejected with 400.
+          schema:
+            type: string
+            pattern: "^omm:artist:[0-9]+$"
+            example: omm:artist:1005712044
+        - name: album_id
+          in: query
+          required: false
+          description: OpenMusicMetadata id of an already matched album, in the form omm:album:ID. Restricts matching to songs on that album instead of the whole catalog, which is more accurate. Takes precedence over album. Ignored for albums and artists. A malformed value is rejected with 400.
+          schema:
+            type: string
+            pattern: "^omm:album:[0-9]+$"
+            example: omm:album:1440857781
         - name: duration
           in: query
           required: false
@@ -159,6 +155,98 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
         "404":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
+
+  /search/{type}:
+    get:
+      tags: [Search]
+      summary: Search metadata resources
+      operationId: searchResources
+      description: |
+        Returns the best matching OpenMusicMetadata resources of one type, ranked best first, so a client can offer alternatives when /identify picked the wrong one.
+
+        Takes the same query parameters and uses the same ranking as /identify. Parameters not used by the type are ignored. The first result is normally the resource /identify would return. /identify answers 404 when its pick cannot be returned, while this skips such resources.
+
+        artist_id and album_id narrow results the same way as in /identify.
+
+        No match is a 200 with an empty list, not a 404.
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ResourceType"
+        - name: name
+          in: query
+          required: true
+          description: Resource name.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+        - name: album
+          in: query
+          required: false
+          description: Album name. Used for songs.
+          schema:
+            type: string
+            maxLength: 256
+        - name: artist
+          in: query
+          required: false
+          description: Artist name. Used for songs and albums.
+          schema:
+            type: string
+            maxLength: 256
+        - name: artist_id
+          in: query
+          required: false
+          description: OpenMusicMetadata id of an already matched artist, in the form omm:artist:ID. Restricts matching to songs and albums by that artist instead of the whole catalog, which is more accurate. Takes precedence over artist. Ignored for artists. A malformed value is rejected with 400.
+          schema:
+            type: string
+            pattern: "^omm:artist:[0-9]+$"
+            example: omm:artist:1005712044
+        - name: album_id
+          in: query
+          required: false
+          description: OpenMusicMetadata id of an already matched album, in the form omm:album:ID. Restricts matching to songs on that album instead of the whole catalog, which is more accurate. Takes precedence over album. Ignored for albums and artists. A malformed value is rejected with 400.
+          schema:
+            type: string
+            pattern: "^omm:album:[0-9]+$"
+            example: omm:album:1440857781
+        - name: duration
+          in: query
+          required: false
+          description: Song duration in milliseconds. Used for songs. Values of 0 or less are ignored. A non-integer value is rejected with 400.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 10
+      responses:
+        "200":
+          description: Ranked resources, best match first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceList"
+        "400":
           $ref: "#/components/responses/Error"
         "429":
           $ref: "#/components/responses/TooManyRequests"
@@ -235,25 +323,6 @@ components:
       example: "602455878540"
 
   schemas:
-    Info:
-      type: object
-      required: [stats]
-      properties:
-        stats:
-          type: object
-          description: Estimated resource counts.
-          required: [songs, albums, artists]
-          properties:
-            songs:
-              type: integer
-              minimum: 0
-            albums:
-              type: integer
-              minimum: 0
-            artists:
-              type: integer
-              minimum: 0
-
     ResourceType:
       type: string
       enum: [song, album, artist]
