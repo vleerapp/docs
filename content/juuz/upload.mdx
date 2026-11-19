@@ -37,12 +37,17 @@ The user needs the upload role, and uploads must not be disabled. Authenticate w
 | `ommAlbumId`    | OpenMusicMetadata album id                                                                   |
 | `ommArtistId`   | OpenMusicMetadata artist id                                                                  |
 | `preferOmm`     | `true` to let OpenMusicMetadata overwrite the tags already in the file. Parameters you pass still win                              |
+| `musicFolderId` | Library to save the song in. See [Libraries](#libraries)                                     |
 | `albumId`       | Album, or song, id for `kind=cover`                                                          |
 | `songId`        | Song id for `kind=lyrics`                                                                    |
 
 Missing tags are filled from the file's own tags, then from OpenMusicMetadata (unless `JUUZ_OMM` is off), and finally guessed from `relativePath` or the original file name. Tags you pass always win. `preferOmm` only lets OpenMusicMetadata replace tags that are already in the file.
 
 A form can have at most 64 text fields of 8 KiB each. Send them before the `file` part, fields after it are ignored.
+
+## Libraries
+
+Songs go to the library given by `musicFolderId`. Without it, juuz uses the upload library of the user, and otherwise the first writable library the user can access. The library must be writable and online and the user needs access to it, or the call fails. Covers and lyrics are saved in the library of the album or song they belong to.
 
 ## Where files go
 
@@ -52,6 +57,8 @@ music/
     └── 2020 - Album/
         └── 01 - Song.flac
 ```
+
+Existing files are never overwritten. If the target name is taken, juuz adds a number, for example `01 - Song (2).flac`. A song that is already in the library is not saved again and returns `duplicate`.
 
 Supported formats are FLAC, MP3, M4A, AAC, Opus, Ogg Vorbis, WAV, AIFF and WavPack. The format is detected from the content, not the file name.
 
@@ -95,4 +102,6 @@ curl -F file=@song.lrc \
 | `lyrics must be utf-8 text`                | Lyrics are not valid UTF-8                    |
 | `cannot write tags to this file format: ...` | You passed tags for a format that cannot hold them |
 | `uploads are disabled on this server`      | Error `50`                                    |
+| `this library is read only`                | Error `50`. The target library is not writable |
+| `no writable library available`            | Error `50`. The user has no writable library to save to |
 | `user is not authorized to upload`         | Error `50`. The user needs the upload role    |

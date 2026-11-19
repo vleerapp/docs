@@ -4,7 +4,7 @@ description: Run juuz with Docker
 icon: pixelarticons:download
 ---
 
-juuz ships as a Docker image at `ghcr.io/vleerapp/juuz`. Stable releases are tagged `latest` and with their version, for example `0.1.0`. Nightly builds are tagged `nightly`. Save this as `docker-compose.yml`, point `/music` at your music folder and run `docker compose up -d`.
+juuz ships as a Docker image at `ghcr.io/vleerapp/juuz`. Stable releases are tagged `latest` and with their version, for example `0.4.0`. Nightly builds are tagged `nightly`. Save this as `docker-compose.yml`, point `/music` at your music folder and run `docker compose up -d`.
 
 ```yaml
 services:
@@ -13,20 +13,26 @@ services:
     restart: unless-stopped
     ports:
       - "4533:4533"
+      - "1704:1704"
     environment:
-      JUUZ_ADMIN_PASSWORD: change-me
+      JUUZ_ADMIN_PASSWORD: replace-with-a-long-random-password
+      JUUZ_PUBLIC_URL: "https://juuz.example.com"
+      JUUZ_TRUST_PROXY: false
+      JUUZ_TOKEN_AUTH: true
+      JUUZ_RATE_LIMIT: 1800
       JUUZ_OMM: "true"
       JUUZ_LASTFM_API_KEY: ""
       JUUZ_LASTFM_SECRET: ""
     volumes:
       - data:/data
       - /path/to/your/music:/music
+      - /mnt/family-nas/music:/libraries/family
 
 volumes:
   data:
 ```
 
-The server listens on port `4533`. See [Configuration](/juuz/config) for the environment variables.
+The server listens on port `4533`. Port `1704` is for Snapcast speakers, see [Jukebox](/juuz/api#jukebox). `/music` is the first library, more libraries are added later, see [Libraries](/juuz/config#libraries). See [Configuration](/juuz/config) for the environment variables.
 
 <Callout title="Permissions" type="warn">
   The container runs as uid `1000`. The music folder must be writable by that user, since [uploads](/juuz/upload) are saved there. `/data` holds the database and caches.
@@ -34,11 +40,15 @@ The server listens on port `4533`. See [Configuration](/juuz/config) for the env
 
 ## First login
 
-Open `http://<host>:4533` and sign in as `admin`. The password is `JUUZ_ADMIN_PASSWORD`. If you leave it unset, juuz generates a random password and logs it once, so read it from `docker compose logs juuz` on the first start.
+Open `http://<host>:4533` and sign in as `admin`. The password is `JUUZ_ADMIN_PASSWORD`, which is only read on the first start when the admin user is created. Change it on the `account` page afterwards. If you leave it unset, juuz generates a random password and logs it once, so read it from `docker compose logs juuz` on the first start.
 
 ## Connecting a client
 
 Point any OpenSubsonic client at `http://<host>:4533` with your juuz username and password, or with an [API key](/juuz/authentication#api-keys). Feishin and Arpeggi are tested.
+
+## Jukebox discovery
+
+To play to DLNA and AirPlay speakers, the container must reach them on the local network, so run it with host networking. Snapcast needs no host networking, only port `1704` published, or set `JUUZ_SNAPCAST=false` to turn it off.
 
 ## Updating
 

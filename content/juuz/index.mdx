@@ -51,25 +51,29 @@ import { Icon } from "@iconify/react";
 
 - **Song upload**: apps save music straight to the server instead of the device, with covers, lyrics and tag fixing included
 - OpenSubsonic API 1.16.1 in JSON and XML, tested with Feishin and Arpeggi
-- Password, token and API key login work for every user
-- Songs and artists are matched through [OpenMusicMetadata](/openmusicmetadata) and exposed as `ommId`. Missing years, genres and artwork are filled in without touching the files
+- Password, token (can be switched off) and API key login work for every user
+- Songs, albums and artists are matched through [OpenMusicMetadata](/openmusicmetadata) and exposed as `ommId`. Missing years, genres and artwork are filled in without touching the files, and wrong matches can be fixed by hand
 - Songs are identified by their audio, so renaming or moving files keeps stars, playlists and history
 - Last.fm scrobbling and now playing, linked per user
+- ListenBrainz, Koito and Maloja scrobbling and now playing, linked per user with just a server url and token
 - Embedded lyrics and `.lrc` files first, then synced lyrics from LRCLIB
 - Albums and compilations are grouped correctly without an album artist tag
+- Multiple libraries with per-user access and permission roles
 - A live SQLite library that watches the music folders
 - Opus, MP3 and AAC transcoding (`format=opus`, `mp3`, `aac`) in pure Rust, no ffmpeg
-- Podcasts, shares, internet radio, play queue and bookmarks
-- Jukebox: the server plays to a DLNA speaker and any `jukeboxControl` app acts as the remote
+- Shares, internet radio, play queue and bookmarks
+- Jukebox: the server plays to DLNA, AirPlay or Snapcast speakers or to another open browser, alone or as a synced group, and any `jukeboxControl` app acts as the remote
 
 ## Web UI
 
-Open `http://<host>:4533` and sign in with any juuz user. There is no player. Pages:
+Open `http://<host>:4533` and sign in with any juuz user. It is a keyboard-driven, terminal-style interface with a library browser, a player and playlists. Pages:
 
-| Page      | Description                                                                          |
-| --------- | ------------------------------------------------------------------------------------ |
-| `stats`   | Top songs, albums and artists, recent plays and plays per day. Admins can see everyone |
-| `account` | Username, max bitrate, play recording, password and Last.fm link                     |
-| `keys`    | [API keys](/juuz/authentication#api-keys)                                            |
-| `users`   | Users and roles. Admin only                                                          |
-| `server`  | Library scan and a read-only view of the server configuration. Admin only            |
+| Page      | Description                                                                                  |
+| --------- | -------------------------------------------------------------------------------------------- |
+| `library` | Browse and play songs, albums and artists, manage playlists and fix matches. Needs the stream or catalogue role |
+| `stats`   | Top songs, albums and artists, recent plays and plays per day. Admins can see everyone       |
+| `account` | Username, max bitrate, play recording, password, [API keys](/juuz/authentication#api-keys) and the scrobbling links |
+| `users`   | Users, roles and library access. Admin only                                                  |
+| `server`  | Libraries, library scan and a read-only view of the server configuration. Needs a server, scan, library or delete role |
+
+API keys are created on the `account` page, see [Authentication](/juuz/authentication#api-keys).

@@ -9,7 +9,7 @@ Every `/rest` call authenticates with query or form parameters. All three styles
 | Style    | Parameters      | Description                                                        |
 | -------- | --------------- | ------------------------------------------------------------------ |
 | Password | `u`, `p`        | Plain, or hex encoded with an `enc:` prefix (`p=enc:70617373`)     |
-| Token    | `u`, `t`, `s`   | `t` is `md5(password + s)` as hex, `s` is a random salt            |
+| Token    | `u`, `t`, `s`   | `t` is `md5(password + s)` as hex, `s` is a random salt. Can be switched off |
 | API key  | `apiKey`        | A key starting with `jz_`                                          |
 
 ```http
@@ -18,12 +18,16 @@ GET /rest/ping?f=json&apiKey=jz_...
 ```
 
 <Callout title="Token login" type="info">
-  juuz needs the password to check a token. A user must log in once with `p` before `t` and `s` work, otherwise the call fails with error `41`. Most clients do this on their own.
+  juuz needs the password to check a token. A user must log in once with `p` before `t` and `s` work, otherwise the call fails with error `41`. Most clients do this on their own. Set `JUUZ_TOKEN_AUTH=false` to turn token login off. The stored password secrets are then deleted and apps must use an API key or `p`, otherwise the call fails with error `42`.
+</Callout>
+
+<Callout title="Brute force protection" type="info">
+  After 10 failed logins within 5 minutes an IP is locked out and every login from it fails with error `40`. Requests are also limited per IP, see `JUUZ_RATE_LIMIT`. Over the limit the server answers `429` with a `Retry-After` header.
 </Callout>
 
 ## API keys
 
-API keys let apps authenticate without a password. They are stored as a SHA-256 hash, so a key is shown only once, when it is created. Create and manage keys on the `keys` page of the web UI or with these calls:
+API keys let apps authenticate without a password. They are stored as a SHA-256 hash, so a key is shown only once, when it is created. Create and manage keys on the `account` page of the web UI or with these calls. They need the keys role, and creating a key needs a password login, not another API key:
 
 | Endpoint            | Parameters                                    | Description                                         |
 | ------------------- | --------------------------------------------- | --------------------------------------------------- |
@@ -40,6 +44,7 @@ API keys let apps authenticate without a password. They are stored as a SHA-256 
 | `10` | `required parameter is missing: p`                          | No `p`, `t` and `s` or `apiKey` was sent     |
 | `40` | `wrong username or password`                                | Unknown user, wrong password or wrong token  |
 | `41` | `log in once with a password so token authentication can be enabled` | Token login before a password login |
+| `42` | `token authentication is disabled on this server, use an api key` | Token login while `JUUZ_TOKEN_AUTH` is off |
 | `43` | `multiple conflicting authentication mechanisms provided`   | `apiKey` sent together with `u`, `p`, `t` or `s` |
 | `44` | `invalid api key`                                           | The key does not exist or was deleted        |
-| `50` | for example `user is not authorized to upload`              | The user lacks the role for this call        |
+| `50` | for example `user is not authorized to upload`              | The user lacks the role for this call. Includes creating an API key with an API key |

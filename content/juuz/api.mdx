@@ -23,7 +23,7 @@ http://<host>:4533/rest/<endpoint>
     "status": "ok",
     "version": "1.16.1",
     "type": "juuz",
-    "serverVersion": "0.1.0",
+    "serverVersion": "0.4.0",
     "openSubsonic": true
   }
 }
@@ -43,20 +43,40 @@ Errors set `status` to `failed` and add `error: {code, message}`.
 | `indexBasedQueue`      | 1       |                                          |
 | `openMusicMetadata`    | 1       | Exposes `ommId` on songs, albums and artists |
 | `juuzSongUpload`       | 1       | [Song upload](/juuz/upload)              |
-| `juuzJukeboxOutput`    | 1       | [Jukebox](#jukebox)                      |
+| `juuzJukeboxOutput`    | 1, 2    | [Jukebox](#jukebox)                      |
 | `juuzJukeboxEvents`    | 1       | [Jukebox](#jukebox)                      |
+| `juuzJukeboxQueue`     | 1       | [Jukebox](#jukebox)                      |
+| `juuzListenbrainz`     | 1       | [ListenBrainz](#listenbrainz-koito-and-maloja) |
 | `juuzLastfm`           | 1       | Only when [Last.fm](/juuz/config#lastfm) is configured |
 
 ## Not supported
 
-| Endpoint      | Result                                          |
-| ------------- | ----------------------------------------------- |
-| `hls`         | Error: `this operation is not supported by the server` |
-| `getCaptions` | Error `70`, `requested item not found`         |
-| `getVideos`   | Always returns an empty list                    |
-| `getVideoInfo`| Error `70`, `video not found`                   |
+These endpoints do not exist and fail with error `0`, `unknown endpoint`:
 
-## Last.fm
+- Podcasts, chat and video: `hls`, `getCaptions`, `getVideos`, `getVideoInfo`, `getPodcasts`, `getNewestPodcasts`, `getChatMessages` and their related calls
+- User management: `createUser`, `updateUser`, `deleteUser` and `changePassword`. Manage users on the `users` page of the [web UI](/juuz#web-ui)
+
+## Users and roles
+
+`getUser` returns the calling user, or any user for an admin. `getUsers` is admin only. Next to the standard roles the response has these juuz roles, each also granted to admins:
+
+| Role                | Allows                                              |
+| ------------------- | --------------------------------------------------- |
+| `juuzScanRole`      | Start library scans                                 |
+| `juuzServerRole`    | See the `server` page                               |
+| `juuzLibraryRole`   | Add and edit libraries                              |
+| `juuzDeleteRole`    | [Delete songs](#library) and remove missing songs   |
+| `juuzRadioRole`     | Manage internet radio stations                      |
+| `juuzCatalogueRole` | Browse the `library` page without the stream role   |
+| `juuzKeysRole`      | Create and manage [API keys](/juuz/authentication#api-keys) |
+
+`folder` lists the library ids a user can access. Music folders in OpenSubsonic are juuz libraries, so `getMusicFolders` and `musicFolderId` work per library.
+
+## Scrobbling
+
+Every `scrobble` call is forwarded to the services the user linked, see [Configuration](/juuz/config#scrobbling).
+
+### Last.fm
 
 `juuzLastfmStatus` always works and reports `configured`. The other calls need [Last.fm configured](/juuz/config#lastfm).
 
@@ -67,27 +87,61 @@ Errors set `status` to `failed` and add `error: {code, message}`.
 | `juuzLastfmLink`    | `token`    | `{"juuzLastfm": {linked: true, username}}`              |
 | `juuzLastfmUnlink`  |            | Removes the link                                        |
 
+### ListenBrainz, Koito and Maloja
+
+Always available, no server setup. The server `url` defaults to listenbrainz.org.
+
+| Endpoint                 | Parameters      | Response                                             |
+| ------------------------ | --------------- | ---------------------------------------------------- |
+| `juuzListenbrainzStatus` |                 | `{"juuzListenbrainz": {linked, url}}`                |
+| `juuzListenbrainzLink`   | `token`, `url`  | Checks the token, then `{"juuzListenbrainz": {linked: true, url}}` |
+| `juuzListenbrainzUnlink` |                 | Removes the link                                     |
+
 ## Jukebox
 
-The server plays to a DLNA speaker. `jukeboxControl` works as in OpenSubsonic and needs the jukebox role or admin.
+The server plays to DLNA, AirPlay and Snapcast speakers, or to another browser with the web UI open. Outputs can be combined into synced groups with a delay per member. `jukeboxControl` works as in OpenSubsonic, and every call below needs the jukebox role or admin.
 
-| Endpoint                 | Parameters      | Description                                                            |
-| ------------------------ | --------------- | ---------------------------------------------------------------------- |
-| `juuzGetJukeboxOutputs`  |                 | Lists known devices and the current output. Needs the jukebox role     |
-| `juuzScanJukeboxOutputs` |                 | Scans the network for devices. Admin only                              |
-| `juuzSetJukeboxOutput`   | `id` or `url`   | Selects the output device. Admin only                                  |
-| `juuzJukeboxEvents`      |                 | Server-sent events stream. Sends a `status` event on every change      |
+| Endpoint                   | Parameters                                    | Description                                                        |
+| -------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| `juuzGetJukeboxOutputs`    |                                               | Lists devices, groups and the current output                       |
+| `juuzScanJukeboxOutputs`   |                                               | Scans the network for devices                                      |
+| `juuzSetJukeboxOutput`     | `id` or `url`                                 | Selects a device or group as the output                            |
+| `juuzSetJukeboxGroup`      | `id` (to edit), `name`, `member` and `delay`  | Creates or updates a group. Repeat `member` with a device id and `delay` with its delay in milliseconds, in the same order |
+| `juuzDeleteJukeboxGroup`   | `id`                                          | Deletes a group                                                    |
+| `juuzJukeboxMove`          | `from`, `to`                                  | Moves a queue entry                                                |
+| `juuzJukeboxEvents`        |                                               | Server-sent events stream. Sends a `status` event on every change  |
 
-Outputs return `{"juuzJukeboxOutputs": {device: [{id, name}], current: {id, name, online}}}`.
+AirPlay receivers that need a password or pairing use these calls. The `lock` field of a device shows what it needs:
+
+| Endpoint                    | Parameters      | Description                              |
+| --------------------------- | --------------- | ---------------------------------------- |
+| `juuzSetJukeboxPassword`    | `id`, `password`| Stores the password of a device          |
+| `juuzStartJukeboxPairing`   | `id`            | Makes the device show a PIN              |
+| `juuzFinishJukeboxPairing`  | `id`, `pin`     | Completes the pairing                    |
+| `juuzForgetJukeboxPairing`  | `id`            | Removes the pairing                      |
+
+Outputs return the following. Each device and group has a `protocol` and `current.online` tells if the output answers.
+
+```json
+{
+  "juuzJukeboxOutputs": {
+    "device": [{"id": "...", "name": "Kitchen", "protocol": "airplay", "detail": "...", "lock": {"needs": "pin", "configured": false, "paired": false}}],
+    "group": [{"id": "...", "name": "Everywhere", "protocol": "...", "member": [{"id": "...", "name": "Kitchen", "protocol": "airplay", "delayMs": 0}]}],
+    "current": {"id": "...", "name": "Kitchen", "protocol": "airplay", "online": true}
+  }
+}
+```
+
+The queue, volume and output stay in sync across every open device. Docker needs [host networking](/juuz/installation#jukebox-discovery) to discover DLNA and AirPlay receivers, and port `1704` for Snapcast.
 
 ## Library
 
 | Endpoint          | Parameters                                   | Description                                         |
 | ----------------- | -------------------------------------------- | --------------------------------------------------- |
 | `juuzUploadSong`  | See [Song upload](/juuz/upload)              | Upload a song, cover or lyrics                      |
-| `juuzDeleteSong`  | `id` (repeatable)                            | Delete songs. Needs the upload role                 |
+| `juuzDeleteSong`  | `id` (repeatable)                            | Delete songs. Needs the delete role                 |
 
-`juuzDeleteSong` removes the file, its `.lrc` and `.txt` lyrics and empty folders left behind, then returns an empty response.
+`juuzDeleteSong` only works on writable libraries, as long as uploads are enabled. It removes the file, its `.lrc` and `.txt` lyrics and empty folders left behind, then returns an empty response.
 
 ## Other routes
 
